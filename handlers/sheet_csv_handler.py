@@ -1,39 +1,50 @@
-from csv_handler import CSVHandler, COLUMNS
-from google_sheets import GoogleSheetsClient
+import logging
+
+from .csv_handler import CSVHandler, COLUMNS
+
+
+logger = logging.getLogger(__name__)
 
 
 class SheetCsvHandler:
     def __init__(self, sheet_id, csv_file="corpus.csv"):
-        self.sheet_client = None
         self.csv_handler = CSVHandler(csv_file)
-        self.sheets_enabled = True
-
-        try:
-            self.sheet_client = GoogleSheetsClient(sheet_id)
-        except Exception as e:
-            self.sheets_enabled = False
-            print(
-                "⚠️ Google Sheets deshabilitado (modo solo CSV local): "
-                f"{e}"
-            )
+        self.sheet_client = self._create_sheet_client(sheet_id)
+        self.sheets_enabled = self.sheet_client is not None
 
         # Cuántas filas de datos están ya en el sheet remoto.
         # Se actualiza en sync_sheet_to_csv y en add_tweets.
         self._synced_rows = len(self.csv_handler.csv)
 
+    @staticmethod
+    def _create_sheet_client(sheet_id):
+        try:
+            from .google_sheets import GoogleSheetsClient
+
+            return GoogleSheetsClient(sheet_id)
+        except Exception as e:
+            logger.warning(
+                "Google Sheets deshabilitado (modo solo CSV local): %s",
+                e,
+            )
+            return None
+
+    def _has_sheet_client(self):
+        return self.sheets_enabled and self.sheet_client is not None
+
     def sync_sheet_to_csv(self):
         """Baja la hoja completa al CSV local. Costoso — ejecutar solo al
         iniciar el proceso o cuando se sospecha drift."""
-        if not self.sheets_enabled or self.sheet_client is None:
+        if not self._has_sheet_client():
             return
         self.sheet_client.download_sheet_as_csv(self.csv_handler.file_path)
-        self.csv_handler.csv = self.csv_handler.read_csv(self.csv_handler.file_path)
+        self.csv_handler.csv = self.csv_handler.read_csv()
         self._synced_rows = len(self.csv_handler.csv)
 
     def sync_csv_to_sheet(self):
         """Sube el CSV local completo (rewrite). Solo para usos puntuales."""
-        self.csv_handler.save_csv(self.csv_handler.file_path)
-        if not self.sheets_enabled or self.sheet_client is None:
+        self.csv_handler.save_csv()
+        if not self._has_sheet_client():
             return
         self.sheet_client.upload_csv_to_sheet(self.csv_handler.file_path)
         self._synced_rows = len(self.csv_handler.csv)
@@ -45,9 +56,9 @@ class SheetCsvHandler:
         """Dedupe + persistir local + append solo de las filas nuevas al sheet."""
         added = self.csv_handler.add_rows(tweets_data)
         if added:
-            self.csv_handler.save_csv(self.csv_handler.file_path)
+            self.csv_handler.save_csv()
 
-        if not self.sheets_enabled or self.sheet_client is None:
+        if not self._has_sheet_client():
             return added
 
         csv_len = len(self.csv_handler.csv)

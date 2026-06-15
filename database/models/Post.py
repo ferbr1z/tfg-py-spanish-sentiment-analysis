@@ -1,12 +1,15 @@
-from sqlmodel import SQLModel, Relationship, Field
+from sqlmodel import Field, Relationship, SQLModel
+from scrapper.TweetTypeEnum import TweetTypeEnum
 
-from models import SubTopic, Topic
+from .Topic import SubTopic, Topic
 
 
 class Post(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
 
-    identifier: str
+    type: TweetTypeEnum = Field(nullable=False)
+
+    identifier: str = Field(unique=True, index=True)
     created_at: str
     text: str
 
@@ -20,4 +23,4 @@ class Post(SQLModel, table=True):
     topic: Topic = Relationship(back_populates="posts")
     subtopic: SubTopic = Relationship(back_populates="posts")
 
-    uploaded : bool = Field(default=False)
+    uploaded: bool = Field(default=False)
