@@ -24,7 +24,7 @@ DB_DRIVER = os.getenv("DB_DRIVER", "postgresql+psycopg")
 DB_ECHO = os.getenv("DB_ECHO", "false").lower() == "true"
 
 SHEET_ID = required_env("SHEET_ID")
-COUNTRY_GEOCODE = required_env("COUNTRY_GEOCODE")
+COUNTRY = required_env("COUNTRY")
 
 PAGE_DEPTH = int(required_env("PAGE_DEPTH"))
 PAGES_PER_STEP = int(os.getenv("PAGES_PER_STEP", "2"))

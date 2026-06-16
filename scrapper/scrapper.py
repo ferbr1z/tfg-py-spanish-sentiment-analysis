@@ -1,13 +1,16 @@
 import logging
 
-from twikit import Client
+from twikit import Client, Tweet
+from twikit.utils import Result
 
 from scrapper.TweetTypeEnum import TweetTypeEnum
+from .client_transaction import CompatibleClientTransaction
 from .cookies import get_cookies
 
 class Scrapper:
     def __init__(self):
         self.client = Client('en-US')
+        self.client.client_transaction = CompatibleClientTransaction()
         self.client.set_cookies(get_cookies())
 
     async def get_by_id(self, id: str):
@@ -16,12 +19,9 @@ class Scrapper:
         except Exception as e:
             logging.error(e)
 
-    async def get_batch(self, query: str, count: int = 20, tweet_type: TweetTypeEnum = TweetTypeEnum.LATEST):
-
-        result = await self.client.search_tweet(
+    async def get_batch(self, query: str, count: int = 20, tweet_type: TweetTypeEnum = TweetTypeEnum.LATEST) -> Result[Tweet]:
+        return await self.client.search_tweet(
             query=query,
             product=tweet_type.product,
             count=count,
         )
-
-        return result

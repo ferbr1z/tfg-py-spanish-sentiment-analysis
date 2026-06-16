@@ -24,3 +24,8 @@ class PostSchema(SQLModel):
     topic_id: int
     subtopic_id: int
     uploaded: bool = Field(default=False)
+
+class TestSchema(SQLModel):
+    type: TweetTypeEnum
+    topic: str
+    last_id: str | None = None
