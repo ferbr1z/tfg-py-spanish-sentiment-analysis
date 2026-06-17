@@ -9,9 +9,18 @@ from scrapper import Scrapper
 
 
 async def prepare_topic(topic: str, date_init: date, date_end: date, last_id: str | None = None) -> str:
+    date_init_format = date_init.strftime("%Y-%m-%d")
+    date_end_format = date_end.strftime("%Y-%m-%d")
+
     query = f"{topic} place_country:{COUNTRY} lang:es"
+
+    if date_init_format:
+        query += f" since:{date_init_format}"
+    if date_end_format:
+        query += f" until:{date_end_format}"
     if last_id:
         query += f" max_id:{int(last_id)}"
+
     return query
 
 
