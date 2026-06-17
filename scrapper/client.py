@@ -4,7 +4,7 @@ from twikit import Client, Tweet
 from twikit.utils import Result
 
 from scrapper.TweetTypeEnum import TweetTypeEnum
-from .client_transaction import CompatibleClientTransaction
+from .compat import CompatibleClientTransaction
 from .cookies import get_cookies
 
 class Scrapper:

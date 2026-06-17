@@ -1,5 +1,8 @@
-from . import twikit_patch  # noqa: F401  — must run before twikit Client is instantiated
-from .scrapper import Scrapper
+from .compat import apply_twikit_patches
+
+apply_twikit_patches()  # debe correr antes de instanciar cualquier twikit.Client
+
+from .client import Scrapper
 from .TweetTypeEnum import TweetTypeEnum
 
 __all__ = ['Scrapper', 'TweetTypeEnum']

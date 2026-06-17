@@ -145,6 +145,3 @@ def apply() -> None:
     _gql.Endpoint.SEARCH_TIMELINE = _patched_search_timeline_endpoint()
     _gql.GQLClient.search_timeline = _patched_search_timeline
     _user_mod.User.__init__ = _patched_user_init
-
-
-apply()
