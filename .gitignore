@@ -1,2 +1,92 @@
-.venv
+# Python bytecode and caches
+__pycache__/
+*.py[codz]
+*$py.class
+.python-version
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Environment variables and local secrets
 .env
+.env.*
+!.env.example
+!example.env
+*.pem
+*.key
+
+# Google/OAuth credentials and local authentication state
+credentials*.json
+client_secret*.json
+service_account*.json
+token*.json
+oauth*.json
+cookies*.json
+session*.json
+
+# Packaging and build output
+build/
+dist/
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+
+# Tests, coverage and static-analysis caches
+.pytest_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.tox/
+.nox/
+.mypy_cache/
+.ruff_cache/
+.pytype/
+.hypothesis/
+
+# Logs, runtime files and local databases
+*.log
+logs/
+*.pid
+*.sqlite
+*.sqlite3
+*.db
+
+# Generated or exported data
+data/
+output/
+outputs/
+exports/
+tmp/
+temp/
+*.csv.tmp
+*.xlsx.tmp
+
+# Downloaded ML models and notebook artifacts
+.cache/
+huggingface/
+/models/
+checkpoints/
+.ipynb_checkpoints/
+
+# IDEs and local tooling
+.idea/
+.vscode/
+.claude/settings.local.json
+.codex/
+.agents/
+*.iml
+
+# Operating-system metadata
+.DS_Store
+._*
+Thumbs.db
+Desktop.ini
+
+# Editor swap and backup files
+*.swp
+*.swo
+*~
