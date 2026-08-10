@@ -13,6 +13,7 @@ class SubTopic(SQLModel, table=True):
     name: str
 
     page: int = Field(default=0)
+    count: int = Field(default=0)
 
     topic_id: int = Field(foreign_key="topic.id")
 

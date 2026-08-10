@@ -43,6 +43,10 @@ async def register_subtopic(
 async def available_topics(session: AsyncSession = Depends(get_session)):
     return await get_available_subtopic(session)
 
+@app.post("/upload-data")
+async def upload_data(session: AsyncSession = Depends(get_session)):
+    return {};
+
 @app.post("/test")
 async def test(topic: TestSchema, scraper: Scrapper = Depends(get_scraper)):
     date_init = date.today() - timedelta(days=30)
