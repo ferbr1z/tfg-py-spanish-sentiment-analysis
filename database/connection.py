@@ -61,6 +61,7 @@ async def session_context() -> AsyncGenerator[AsyncSession, None]:
     async with get_sessionmaker()() as session:
         try:
             yield session
+            await session.commit()
         except Exception:
             await session.rollback()
             raise

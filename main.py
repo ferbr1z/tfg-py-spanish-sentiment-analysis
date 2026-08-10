@@ -22,7 +22,6 @@ async def root():
 async def register_topic(topic_data: TopicSchema, session: AsyncSession = Depends(get_session)):
     topic = Topic(name=topic_data.name)
     session.add(topic)
-    await session.commit()
     await session.refresh(topic)
     return topic
 
@@ -34,7 +33,6 @@ async def register_subtopic(
 ):
     subtopic = SubTopic(name=subtopic_data.name, topic_id=subtopic_data.topic_id)
     session.add(subtopic)
-    await session.commit()
     await session.refresh(subtopic)
     return subtopic
 
@@ -49,7 +47,7 @@ async def upload_data(session: AsyncSession = Depends(get_session)):
 
 @app.post("/test")
 async def test(topic: TestSchema, scraper: Scrapper = Depends(get_scraper)):
-    date_init = date.today() - timedelta(days=30)
+    date_init = date.today() - timedelta(days=90)
     date_end = date.today() + timedelta(days=0)
 
     name = topic.topic

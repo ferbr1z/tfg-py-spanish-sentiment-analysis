@@ -23,7 +23,7 @@ class PostSchema(SQLModel):
     reply_count: int
     topic_id: int
     subtopic_id: int
-    uploaded: bool = Field(default=False)
+    # uploaded: bool = Field(default=False)
 
 class TestSchema(SQLModel):
     type: TweetTypeEnum

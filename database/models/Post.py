@@ -23,4 +23,4 @@ class Post(SQLModel, table=True):
     topic: Topic = Relationship(back_populates="posts")
     subtopic: SubTopic = Relationship(back_populates="posts")
 
-    uploaded: bool = Field(default=False)
+    # uploaded: bool = Field(default=False)
