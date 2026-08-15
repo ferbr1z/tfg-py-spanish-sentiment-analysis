@@ -2,8 +2,9 @@
 Seeder de Topics/SubTopics desde un CSV de dos columnas: topic, subtopic.
 
 Uso:
-    python -m app.seed_topics ruta/al/archivo.csv
-    python -m app.seed_topics ruta/al/archivo.csv --no-header
+    python -m database.seed_topics                            # usa database/wordlist.csv
+    python -m database.seed_topics ruta/al/archivo.csv
+    python -m database.seed_topics ruta/al/archivo.csv --no-header
 """
 import argparse
 import asyncio
@@ -13,8 +14,11 @@ import pandas as pd
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from database import create_db_and_tables, dispose_engine, session_context
+from database.connection import create_db_and_tables, dispose_engine, session_context
 from database.models import SubTopic, Topic
+
+
+DEFAULT_CSV = Path(__file__).resolve().parent / "wordlist.csv"
 
 
 def read_pairs(csv_path: Path, *, has_header: bool = True, delimiter: str = ",") -> pd.DataFrame:
@@ -28,7 +32,8 @@ def read_pairs(csv_path: Path, *, has_header: bool = True, delimiter: str = ",")
     )
     df.columns = ["topic", "subtopic"]
 
-    df = df.apply(lambda column: column.str.strip())
+    df["topic"] = df["topic"].str.strip()
+    df["subtopic"] = df["subtopic"].str.strip()
     df = df.replace("", pd.NA).dropna().drop_duplicates()
 
     return df.reset_index(drop=True)
@@ -80,7 +85,7 @@ async def seed_from_csv(csv_path: Path, *, has_header: bool = True, delimiter: s
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Carga Topics y SubTopics desde un CSV.")
-    parser.add_argument("csv_path", type=Path, help="Ruta al CSV con columnas topic,subtopic")
+    parser.add_argument("csv_path", type=Path, nargs="?", default=DEFAULT_CSV, help="Ruta al CSV con columnas topic,subtopic")
     parser.add_argument("--no-header", action="store_true", help="El CSV no tiene fila de encabezado")
     parser.add_argument("--delimiter", default=",", help="Separador de columnas (por defecto ',')")
     args = parser.parse_args()
