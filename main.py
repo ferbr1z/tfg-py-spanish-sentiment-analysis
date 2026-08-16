@@ -1,6 +1,6 @@
 from datetime import date, timedelta
 
-from fastapi import Depends, FastAPI
+from fastapi import Depends, FastAPI, HTTPException
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app import fetch_data, get_scraper, lifespan
@@ -44,6 +44,24 @@ async def available_topics(session: AsyncSession = Depends(get_session)):
 @app.post("/upload-data")
 async def upload_data(session: AsyncSession = Depends(get_session)):
     return {};
+
+@app.post("/subtopic/{subtopic_id}/exhaust")
+async def exhaust_subtopic(
+    subtopic_id: int,
+    exhausted: bool = True,
+    session: AsyncSession = Depends(get_session),
+):
+    """Saca (o devuelve) un subtema de la cola."""
+    subtopic = await session.get(SubTopic, subtopic_id)
+    if subtopic is None:
+        raise HTTPException(status_code=404, detail="SubTopic not found")
+
+    subtopic.exhausted = exhausted
+    session.add(subtopic)
+    await session.commit()
+    await session.refresh(subtopic)
+    return subtopic
+
 
 @app.post("/test")
 async def test(topic: TestSchema, scraper: Scrapper = Depends(get_scraper)):
