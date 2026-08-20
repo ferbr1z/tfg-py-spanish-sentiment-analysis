@@ -29,5 +29,9 @@ COUNTRY = required_env("COUNTRY")
 PAGE_DEPTH = int(required_env("PAGE_DEPTH"))
 PAGES_PER_STEP = int(os.getenv("PAGES_PER_STEP", "2"))
 
+# Lotes seguidos sin posts nuevos para dar por agotado un subtema.
+# Subirlo da margen ante fallos puntuales de X.
+EMPTY_STREAK_LIMIT = int(os.getenv("EMPTY_STREAK_LIMIT", "1"))
+
 AUTH_TOKEN = required_env("AUTH_TOKEN")
 CT0 = required_env("CT0")

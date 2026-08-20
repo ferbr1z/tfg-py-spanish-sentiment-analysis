@@ -24,7 +24,7 @@ async def prepare_topic(topic: str, date_init: date, date_end: date, last_id: st
     return query
 
 
-async def fetch_data(scraper: Scrapper,topic: str,date_init: date,date_end: date,limit: int = 20, last_id: str | None = None) -> dict[str, object]:
+async def fetch_data(scraper: Scrapper,topic: str,date_init: date,date_end: date, last_id: str | None = None, limit: int = 20) -> dict[str, object]:
     tweets = await scraper.get_batch(await prepare_topic(topic, date_init, date_end, last_id))
 
     items = get_tweets_text(tweets)

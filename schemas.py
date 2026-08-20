@@ -1,3 +1,5 @@
+from datetime import date
+
 from sqlmodel import Field, SQLModel
 
 from scrapper.TweetTypeEnum import TweetTypeEnum
@@ -28,4 +30,11 @@ class PostSchema(SQLModel):
 class TestSchema(SQLModel):
     type: TweetTypeEnum
     topic: str
+    last_id: str | None = None
+
+class ScrapperSchema(SQLModel):
+    date_init: date
+    date_end: date
+    name:str
+    type: TweetTypeEnum
     last_id: str | None = None

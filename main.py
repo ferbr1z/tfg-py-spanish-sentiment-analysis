@@ -1,13 +1,13 @@
 from datetime import date, timedelta
 
-from fastapi import Depends, FastAPI
+from fastapi import Depends, FastAPI, HTTPException
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app import fetch_data, get_scraper, lifespan
 from app.get_available_subtopic import get_available_subtopic
 from database import get_session
 from database.models import Topic, SubTopic
-from schemas import TopicSchema, SubTopicSchema, TestSchema
+from schemas import TopicSchema, SubTopicSchema, TestSchema, ScrapperSchema
 from scrapper import Scrapper
 
 app = FastAPI(lifespan=lifespan)
@@ -44,6 +44,27 @@ async def available_topics(session: AsyncSession = Depends(get_session)):
 @app.post("/upload-data")
 async def upload_data(session: AsyncSession = Depends(get_session)):
     return {};
+
+@app.post("/subtopic/{subtopic_id}/exhaust")
+async def exhaust_subtopic(
+    subtopic_id: int,
+    exhausted: bool = True,
+    session: AsyncSession = Depends(get_session),
+):
+    """Saca (o devuelve) un subtema de la cola."""
+    subtopic = await session.get(SubTopic, subtopic_id)
+    if subtopic is None:
+        raise HTTPException(status_code=404, detail="SubTopic not found")
+
+    subtopic.exhausted = exhausted
+    session.add(subtopic)
+    await session.commit()
+    await session.refresh(subtopic)
+    return subtopic
+
+@app.post("/scrapper")
+async def scrapper(topic: ScrapperSchema, scraper = Depends(get_scraper)):
+    return await fetch_data(scraper, topic.name, topic.date_init, topic.date_end, topic.last_id)
 
 @app.post("/test")
 async def test(topic: TestSchema, scraper: Scrapper = Depends(get_scraper)):

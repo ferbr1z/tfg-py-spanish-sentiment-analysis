@@ -6,6 +6,8 @@ services:
     ports:
       - "5678:5678"
     environment:
+      API_URL: http://host.docker.internal:8000
+      N8N_BLOCK_ENV_ACCESS_IN_NODE: "false"
       DB_TYPE: postgresdb
       DB_POSTGRESDB_HOST: postgres-db
       DB_POSTGRESDB_PORT: 5432
