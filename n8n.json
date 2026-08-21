@@ -1,0 +1,147 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 10
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        0
+      ],
+      "id": "5efd18b9-87c2-4c60-968c-043d27e2d95a",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.API_URL }}/available",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "4c6a8a36-92d4-40a4-8018-b5e6cc2b1480",
+      "name": "Get available"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.API_URL }}/scrapper",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"date_init\": \"2025-08-20\",\n  \"date_end\": \"2026-08-20\",\n  \"name\": \"{{ $json.name }}\",\n  \"type\": \"Latest\",\n  \"last_id\": \"{{ $json.last_id ?? \"\" }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        416,
+        0
+      ],
+      "id": "2cd3d3aa-f6c6-45e5-bffb-6a427e5a2590",
+      "name": "Scrapper"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        624,
+        0
+      ],
+      "id": "870a4fdd-72cf-4767-b2ac-a94fb7e97507",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {
+          "promptConfig": {
+            "promptOptions": {
+              "promptId": "Order",
+              "version": "1",
+              "variables": "="
+            }
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        496,
+        208
+      ],
+      "id": "954e8bea-157b-4f7a-b550-59989cd94f5a",
+      "name": "OpenAI Chat Model"
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get available",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get available": {
+      "main": [
+        [
+          {
+            "node": "Scrapper",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Scrapper": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5dce643ea41a21fedf518a181c08b89c51c188b77cf923dc322fb226ebf00c4c"
+  }
+}
