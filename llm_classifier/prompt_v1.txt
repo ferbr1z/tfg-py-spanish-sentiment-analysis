@@ -1,0 +1,11 @@
+Clasifica el sentimiento global de cada publicación paraguaya. El texto puede estar en español, guaraní o jopara.
+
+Criterios:
+- POS: expresa una valoración favorable, satisfacción, alegría, apoyo o aprobación.
+- NEG: expresa una valoración desfavorable, queja, enojo, rechazo, crítica o insatisfacción.
+- NEU: es informativa, no expresa una valoración clara, contiene sentimientos equilibrados o el sentimiento es ambiguo.
+
+Considera negaciones, intensificadores, expresiones coloquiales e ironía cuando sea evidente. Cuando aparezca vocabulario guaraní o jopara, interprétalo dentro de la oración completa y determina si modifica, refuerza o niega la valoración. La mera presencia de guaraní no define por sí sola el sentimiento. Devuelve exactamente una clasificación por cada publicación y conserva su id original sin modificarlo. Si no hay publicaciones, devuelve una lista de clasificaciones vacía.
+
+Publicaciones:
+{{ JSON.stringify($json.items) }}

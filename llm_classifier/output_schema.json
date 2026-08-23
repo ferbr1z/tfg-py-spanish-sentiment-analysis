@@ -1,0 +1,36 @@
+{
+  "type": "object",
+  "properties": {
+    "classifications": {
+      "type": "array",
+      "description": "Una clasificación por cada publicación recibida",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Identificador original de la publicación"
+          },
+          "sentiment": {
+            "type": "string",
+            "enum": [
+              "POS",
+              "NEG",
+              "NEU"
+            ],
+            "description": "Sentimiento de la publicación"
+          }
+        },
+        "required": [
+          "id",
+          "sentiment"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "classifications"
+  ],
+  "additionalProperties": false
+}
