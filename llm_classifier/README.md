@@ -36,26 +36,25 @@ La API key se guarda únicamente en la credencial de n8n. No debe agregarse a
 - `prompt_v1.txt`: copia versionada del criterio de clasificación usado en el
   nodo `LLM Sentiment Classifier`.
 - `output_schema.json`: contrato de salida usado por `Validate LLM Output`.
-- `test_cases.json`: casos controlados en español, guaraní y jopara con el
-  resultado esperado.
+- `real_validation_sample.json`: publicaciones reales obtenidas por el scraper
+  y la clasificación devuelta por el workflow LLM.
 - Credencial de OpenAI: solamente en el nodo `OpenAI Chat Model` de n8n.
 
 Si se cambia el prompt o el esquema, se debe actualizar tanto el archivo
 versionado como el nodo correspondiente de `n8n.json`.
 
-## Prueba verificada
+## Prueba verificada con publicaciones reales
 
-El 23 de agosto de 2026 se ejecutó el clasificador real en n8n con
-`gpt-5-mini`, la credencial configurada y el esquema estructurado. Los seis
-casos de `test_cases.json` coincidieron con sus resultados esperados:
+El 23 de agosto de 2026 se recolectaron cinco publicaciones reales de
+X/Twitter mediante el scraper del proyecto con la consulta `Paraguay lang:es`.
+La muestra se envió al clasificador real de n8n usando `gpt-5-mini`, la
+credencial configurada y el esquema estructurado.
 
-- Dos negativos, incluyendo `ivaieterei` y una negación de `iporã`.
-- Dos positivos, incluyendo `iporã`, `aguyje` y una negación de `vai`.
-- Dos neutrales con vocabulario guaraní/jopara dentro de frases informativas.
+En los cinco casos se conservó el identificador original y la respuesta quedó
+dentro del conjunto permitido `POS`, `NEG` o `NEU`. La consulta, la fecha de
+recolección, los textos y las respuestas se conservan en
+`real_validation_sample.json`.
 
-También se clasificaron tres publicaciones obtenidas en vivo por el scraper.
-En los tres casos se conservó el identificador original y la salida perteneció
-al conjunto permitido `POS`, `NEG` o `NEU`.
-
-Esta es una prueba funcional y de integración. No pretende medir por sí sola
-la exactitud general del modelo.
+Esta evidencia demuestra que la integración scraper–LLM funciona con datos
+reales. No mide por sí sola la exactitud de las clasificaciones; para afirmar
+exactitud sería necesaria una muestra real etiquetada manualmente.

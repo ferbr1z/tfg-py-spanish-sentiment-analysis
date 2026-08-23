@@ -1,0 +1,34 @@
+{
+  "source": "X/Twitter via project scraper",
+  "query": "Paraguay lang:es",
+  "collected_at": "2026-08-23T19:44:47.3183788Z",
+  "model": "gpt-5-mini",
+  "prompt_version": "1",
+  "posts": [
+    {
+      "id": "2091612508041969829",
+      "text": "@ImTheLucx Vivir en Paraguay es una mierda.\nY eso no me lo pueden negar los Paraguayos, no digan mentiras",
+      "sentiment_llm": "NEG"
+    },
+    {
+      "id": "2091612492451487779",
+      "text": "Le tuvieron que robar a Paraguay en 2010 y a Argentina en 2026 pero alardean estos HDP. Agradecé que no le sacaron roja al putito copia barata de Puyol.",
+      "sentiment_llm": "NEG"
+    },
+    {
+      "id": "2091612180148097362",
+      "text": "@Andreasprivate6 Ojalá y gane Paraguay para ver lo delicioso de tu cuerpo",
+      "sentiment_llm": "POS"
+    },
+    {
+      "id": "2091611568978919773",
+      "text": "🏆 #Clausura2026 – Fecha 6\n\n⏱️ 40’ del primer tiempo.\n\nÚltimos minutos de la primera mitad.\n\n📌 #Olimpia 0 - 0 #CerroPorteño\n\n📲 Whatsapp: https://t.co/7cmk1oT5MG\n\n🔴 Live: https://t.co/MQNmeCrCaw\n\n📌 YOUTUBE EN VIVO: https://t.co/tVf0RKCTJz",
+      "sentiment_llm": "NEU"
+    },
+    {
+      "id": "2091610700724490360",
+      "text": "@chiqui_avalos @eg9609 LADRONES PARÁSITOS el verdadero CÁNCER del Paraguay!!! FUNCIONARIOS PÚBLICOS!!!",
+      "sentiment_llm": "NEG"
+    }
+  ]
+}
