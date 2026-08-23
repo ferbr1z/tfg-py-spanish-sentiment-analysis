@@ -24,7 +24,7 @@ Esos elementos pueden conectarse directamente a los nodos encargados de Google S
 3. Ejecutar primero con un lote pequeño de publicaciones.
 4. Comprobar que `Prepare LLM Results` produce una fila por publicación.
 
-El prompt versionado está en `prompt_v1.txt` y su esquema de validación en `output_schema.json`.
+El prompt versionado está en `prompt_v2.txt` y su esquema de validación en `output_schema.json`.
 
 La API key se guarda únicamente en la credencial de n8n. No debe agregarse a
 `n8n.json`, `.env`, el prompt ni ningún archivo del repositorio.
@@ -33,7 +33,7 @@ La API key se guarda únicamente en la credencial de n8n. No debe agregarse a
 
 - `../n8n.json`: workflow que conecta scraper, clasificador, validación y
   preparación de resultados.
-- `prompt_v1.txt`: copia versionada del criterio de clasificación usado en el
+- `prompt_v2.txt`: copia versionada del criterio de clasificación usado en el
   nodo `LLM Sentiment Classifier`.
 - `output_schema.json`: contrato de salida usado por `Validate LLM Output`.
 - Credencial de OpenAI: solamente en el nodo `OpenAI Chat Model` de n8n.
