@@ -17,12 +17,18 @@ El nodo `Scrapper` debe entregar un objeto `items`. Cada publicación necesita c
 
 Esos elementos pueden conectarse directamente a los nodos encargados de Google Sheets y de la base de datos externa.
 
-## Configuración
+## Única configuración manual del LLM
 
 1. Importar `n8n.json` en n8n.
-2. Abrir `OpenAI Chat Model` y seleccionar una credencial de OpenAI.
-3. Ejecutar primero con un lote pequeño de publicaciones.
-4. Comprobar que `Prepare LLM Results` produce una fila por publicación.
+2. Abrir `OpenAI Chat Model`.
+3. Crear una credencial de OpenAI, pegar la API key y guardar.
+
+El modelo, el prompt, los criterios de clasificación, la validación y la
+preparación de resultados ya quedan configurados en el workflow. No hay que
+copiar el prompt ni editar el esquema manualmente.
+
+Al ejecutar, `Prepare LLM Results` entrega una fila por publicación lista para
+conectarse a Google Sheets o a la base de datos externa.
 
 El prompt versionado está en `prompt_v2.txt` y su esquema de validación en `output_schema.json`.
 
