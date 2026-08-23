@@ -1,0 +1,32 @@
+[
+  {
+    "id": "neg-guarani",
+    "text": "Este servicio ivaieterei, nunca funciona.",
+    "expected": "NEG"
+  },
+  {
+    "id": "pos-guarani",
+    "text": "La atención fue iporã, aguyje por ayudarme tan rápido.",
+    "expected": "POS"
+  },
+  {
+    "id": "neu-jopara",
+    "text": "Ko’ẽrõ la oficina abre a las ocho.",
+    "expected": "NEU"
+  },
+  {
+    "id": "neg-negacion",
+    "text": "No estuvo iporã la atención, esperé dos horas.",
+    "expected": "NEG"
+  },
+  {
+    "id": "pos-negacion",
+    "text": "Ndaha'éi vai el servicio; me resolvieron todo enseguida.",
+    "expected": "POS"
+  },
+  {
+    "id": "neu-guarani",
+    "text": "Hoy hubo atención en español ha guaraníme.",
+    "expected": "NEU"
+  }
+]
