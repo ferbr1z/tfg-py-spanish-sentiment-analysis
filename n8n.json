@@ -114,38 +114,6 @@
       ],
       "id": "7e5ecaf9-711b-4efe-8f63-acde00b20588",
       "name": "Prepare LLM Results"
-    },
-    {
-      "parameters": {
-        "content": "## Única configuración del LLM\n\n1. Abre **OpenAI Chat Model**.\n2. Crea una credencial de OpenAI.\n3. Pega la **API key** y guarda.\n\nEl modelo, el prompt y el formato de salida ya están configurados.",
-        "height": 280,
-        "width": 360,
-        "color": 5
-      },
-      "type": "n8n-nodes-base.stickyNote",
-      "typeVersion": 1,
-      "position": [
-        328,
-        304
-      ],
-      "id": "6ad53383-a31d-4d6d-97f1-2f75f8f91b25",
-      "name": "Configuración LLM"
-    },
-    {
-      "parameters": {
-        "content": "## Salida lista para guardar\n\n**Una fila por publicación**, con todos sus datos originales más:\n\n- `sentiment_llm`: POS, NEG o NEU\n- `llm_model`: modelo usado\n- `llm_prompt_version`: versión del criterio\n- `llm_classified_at`: fecha y hora\n\nPuede conectarse directamente a Sheets o a la base de datos.",
-        "height": 320,
-        "width": 400,
-        "color": 4
-      },
-      "type": "n8n-nodes-base.stickyNote",
-      "typeVersion": 1,
-      "position": [
-        832,
-        304
-      ],
-      "id": "0cd6d13e-60de-4a46-8f65-0781fbdfa2c8",
-      "name": "Salida del LLM"
     }
   ],
   "connections": {
