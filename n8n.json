@@ -1,4 +1,5 @@
 {
+  "name": "TFG Pipeline",
   "nodes": [
     {
       "parameters": {
@@ -17,7 +18,7 @@
         0,
         0
       ],
-      "id": "5efd18b9-87c2-4c60-968c-043d27e2d95a",
+      "id": "ca25f0fe-0f84-4e52-b4fa-1d617dd59d5f",
       "name": "Schedule Trigger"
     },
     {
@@ -31,7 +32,7 @@
         208,
         0
       ],
-      "id": "4c6a8a36-92d4-40a4-8018-b5e6cc2b1480",
+      "id": "62453afc-81d0-4390-8e5f-e1fb541758d3",
       "name": "Get available"
     },
     {
@@ -40,7 +41,7 @@
         "url": "={{ $env.API_URL }}/scrapper",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"date_init\": \"2025-08-20\",\n  \"date_end\": \"2026-08-20\",\n  \"name\": \"{{ $json.name }}\",\n  \"type\": \"Latest\",\n  \"last_id\": \"{{ $json.last_id ?? \"\" }}\"\n}",
+        "jsonBody": "={\n  \"date_init\": \"{{ $now.minus({ years: 1 }).toISODate() }}\",\n  \"date_end\": \"{{ $now.plus({ days: 1 }).toISODate() }}\",\n  \"name\": \"{{ $json.name }}\",\n  \"type\": \"Latest\",\n  \"last_id\": \"{{ $json.last_id ?? \"\" }}\"\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
@@ -49,11 +50,14 @@
         416,
         0
       ],
-      "id": "2cd3d3aa-f6c6-45e5-bffb-6a427e5a2590",
+      "id": "bac166d8-f321-4814-8ce4-53d7e57abf53",
       "name": "Scrapper"
     },
     {
       "parameters": {
+        "promptType": "define",
+        "text": "=Clasifica el tono emocional general de cada publicación paraguaya. El texto puede estar en español, guaraní o jopara. No clasifiques si la postura, causa o intención del autor te parece correcta o favorable; clasifica cómo está expresado el mensaje.\n\nCriterios:\n- POS: expresa una valoración favorable, satisfacción, alegría, entusiasmo, agradecimiento, apoyo o aprobación con tono positivo.\n- NEG: expresa una valoración desfavorable, queja, enojo, rechazo, crítica, hostilidad, insulto o insatisfacción.\n- NEU: es principalmente informativa, no expresa una valoración clara, contiene sentimientos equilibrados o el sentimiento es ambiguo.\n\nAplica esta prioridad de decisión:\n1. Si existe ataque directo, burla, reproche, insulto, queja, hostilidad o confrontación explícita, clasifica NEG. Esta prioridad se mantiene aunque el texto también exprese apoyo, aprobación o defienda una causa o derecho.\n2. Si no existe ese contenido negativo y predomina una valoración favorable o una emoción positiva, clasifica POS.\n3. Si no predomina una emoción positiva ni negativa, clasifica NEU.\n\nUna respuesta institucional que se limita a lamentar un inconveniente, ofrecer ayuda o proporcionar canales de atención es NEU si no expresa satisfacción, alegría o aprobación.\n\nConsidera negaciones, intensificadores, expresiones coloquiales e ironía cuando sea evidente. Cuando aparezca vocabulario guaraní o jopara, interprétalo dentro de la oración completa y determina si modifica, refuerza o niega la valoración. La mera presencia de guaraní no define por sí sola el sentimiento.\n\nDevuelve exactamente una clasificación por cada publicación y conserva su id original sin modificarlo. Si no hay publicaciones, devuelve una lista de clasificaciones vacía.\n\nPublicaciones:\n{{ JSON.stringify($json.items) }}",
+        "hasOutputParser": true,
         "options": {}
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
@@ -62,8 +66,8 @@
         624,
         0
       ],
-      "id": "870a4fdd-72cf-4767-b2ac-a94fb7e97507",
-      "name": "AI Agent"
+      "id": "5fbfd4c8-33a0-46a1-b39e-b10848f1046c",
+      "name": "LLM Sentiment Classifier"
     },
     {
       "parameters": {
@@ -73,15 +77,7 @@
           "value": "gpt-5-mini"
         },
         "builtInTools": {},
-        "options": {
-          "promptConfig": {
-            "promptOptions": {
-              "promptId": "Order",
-              "version": "1",
-              "variables": "="
-            }
-          }
-        }
+        "options": {}
       },
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.3,
@@ -89,8 +85,35 @@
         496,
         208
       ],
-      "id": "954e8bea-157b-4f7a-b550-59989cd94f5a",
+      "id": "55af65c3-a60a-44df-a9d1-51e7ee42feaf",
       "name": "OpenAI Chat Model"
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"classifications\": {\n      \"type\": \"array\",\n      \"description\": \"Una clasificación por cada publicación recibida\",\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"string\",\n            \"description\": \"Identificador original de la publicación\"\n          },\n          \"sentiment\": {\n            \"type\": \"string\",\n            \"enum\": [\"POS\", \"NEG\", \"NEU\"],\n            \"description\": \"Sentimiento de la publicación\"\n          }\n        },\n        \"required\": [\"id\", \"sentiment\"],\n        \"additionalProperties\": false\n      }\n    }\n  },\n  \"required\": [\"classifications\"],\n  \"additionalProperties\": false\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        704,
+        208
+      ],
+      "id": "73ca128a-72ba-4ede-8ab5-1aca5032af65",
+      "name": "Validate LLM Output"
+    },
+    {
+      "parameters": {
+        "jsCode": "const originalItems = Object.values($('Scrapper').first().json.items ?? {});\nconst originalById = new Map(\n  originalItems.map((item) => [String(item.id), item]),\n);\n\nconst classifications = $json.output?.classifications;\nif (!Array.isArray(classifications)) {\n  throw new Error('La respuesta del LLM no contiene classifications');\n}\n\nif (classifications.length !== originalItems.length) {\n  throw new Error(\n    `Se recibieron ${classifications.length} clasificaciones para ${originalItems.length} publicaciones`,\n  );\n}\n\nconst allowedSentiments = new Set(['POS', 'NEG', 'NEU']);\nconst seenIds = new Set();\nconst classifiedAt = new Date().toISOString();\n\nreturn classifications.map((classification) => {\n  const id = String(classification.id);\n  const sentiment = classification.sentiment;\n\n  if (!allowedSentiments.has(sentiment)) {\n    throw new Error(`Sentimiento inválido para ${id}: ${sentiment}`);\n  }\n  if (seenIds.has(id)) {\n    throw new Error(`El LLM devolvió un id duplicado: ${id}`);\n  }\n\n  const original = originalById.get(id);\n  if (!original) {\n    throw new Error(`El LLM devolvió un id desconocido: ${id}`);\n  }\n\n  seenIds.add(id);\n  return {\n    json: {\n      ...original,\n      sentiment_llm: sentiment,\n      llm_model: 'gpt-5-mini',\n      llm_prompt_version: '2',\n      llm_classified_at: classifiedAt,\n    },\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        0
+      ],
+      "id": "7e5ecaf9-711b-4efe-8f63-acde00b20588",
+      "name": "Prepare LLM Results"
     }
   ],
   "connections": {
@@ -120,7 +143,7 @@
       "main": [
         [
           {
-            "node": "AI Agent",
+            "node": "LLM Sentiment Classifier",
             "type": "main",
             "index": 0
           }
@@ -131,17 +154,45 @@
       "ai_languageModel": [
         [
           {
-            "node": "AI Agent",
+            "node": "LLM Sentiment Classifier",
             "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate LLM Output": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "LLM Sentiment Classifier",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LLM Sentiment Classifier": {
+      "main": [
+        [
+          {
+            "node": "Prepare LLM Results",
+            "type": "main",
             "index": 0
           }
         ]
       ]
     }
   },
-  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "staticData": null,
   "meta": {
-    "templateCredsSetupCompleted": true,
-    "instanceId": "5dce643ea41a21fedf518a181c08b89c51c188b77cf923dc322fb226ebf00c4c"
-  }
+    "templateCredsSetupCompleted": true
+  },
+  "nodeGroups": [],
+  "tags": []
 }

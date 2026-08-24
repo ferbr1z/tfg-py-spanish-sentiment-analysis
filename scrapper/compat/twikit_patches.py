@@ -103,13 +103,16 @@ def _patched_user_init(self, client, data: dict) -> None:
     legacy = dict(data.get("legacy") or {})
     core = data.get("core") or {}
     avatar = data.get("avatar") or {}
+    dm_permissions = data.get("dm_permissions") or {}
+    media_permissions = data.get("media_permissions") or {}
+    location = data.get("location") or {}
 
     legacy.setdefault("created_at", core.get("created_at", ""))
     legacy.setdefault("name", core.get("name", ""))
     legacy.setdefault("screen_name", core.get("screen_name", ""))
     legacy.setdefault("profile_image_url_https", avatar.get("image_url", ""))
 
-    legacy.setdefault("location", "")
+    legacy.setdefault("location", location.get("location", ""))
     legacy.setdefault("description", "")
     entities = dict(legacy.get("entities") or {})
     description_entities = dict(entities.get("description") or {})
@@ -120,7 +123,12 @@ def _patched_user_init(self, client, data: dict) -> None:
     legacy.setdefault("pinned_tweet_ids_str", [])
     legacy.setdefault("verified", False)
     legacy.setdefault("possibly_sensitive", False)
-    legacy.setdefault("can_dm", False)
+    legacy.setdefault("can_dm", dm_permissions.get("can_dm", False))
+    legacy.setdefault(
+        "can_media_tag",
+        media_permissions.get("can_media_tag", False),
+    )
+    legacy.setdefault("want_retweets", False)
     legacy.setdefault("default_profile", False)
     legacy.setdefault("default_profile_image", False)
     legacy.setdefault("has_custom_timelines", False)
