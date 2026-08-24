@@ -1,13 +1,15 @@
 from datetime import date, timedelta
+from typing import List
 
 from fastapi import Depends, FastAPI, HTTPException
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app import fetch_data, get_scraper, lifespan
 from app.get_available_subtopic import get_available_subtopic
+from app.upload_tweets import upload_tweets
 from database import get_session
 from database.models import Topic, SubTopic
-from schemas import TopicSchema, SubTopicSchema, TestSchema, ScrapperSchema
+from schemas import TopicSchema, SubTopicSchema, TestSchema, ScrapperSchema, PostSchema
 from scrapper import Scrapper
 
 app = FastAPI(lifespan=lifespan)
@@ -41,9 +43,9 @@ async def register_subtopic(
 async def available_topics(session: AsyncSession = Depends(get_session)):
     return await get_available_subtopic(session)
 
-@app.post("/upload-data")
-async def upload_data(session: AsyncSession = Depends(get_session)):
-    return {};
+@app.post("/upload-data/{subtopic_id}")
+async def upload_data(subtopic_id: int, items: List[PostSchema], session: AsyncSession = Depends(get_session)):
+    return await upload_tweets(subtopic_id, items, session);
 
 @app.post("/subtopic/{subtopic_id}/exhaust")
 async def exhaust_subtopic(

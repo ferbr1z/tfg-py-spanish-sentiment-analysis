@@ -6,52 +6,48 @@ from typing_extensions import List
 from database.models import Post, SubTopic
 from schemas import PostSchema
 
-from .advance_subtopic import advance_subtopic, should_exhaust
+from .advance_subtopic import should_exhaust
 
 
 async def upload_tweets(sub_topic_id: int, items: List[PostSchema], session: AsyncSession):
-    sub_topic : SubTopic | None = (await  session.exec(select(SubTopic).where(SubTopic.id == sub_topic_id))).first()
+    sub_topic: SubTopic | None = await session.get(SubTopic, sub_topic_id)
 
     if not sub_topic:
         return {"error": "SubTopic not found"}
 
-    assert sub_topic.id is not None
+    # Filtramos los que ya teniamos guardados para no duplicar.
+    existentes = set(
+        (await session.exec(
+            select(col(Post.identifier)).where(
+                col(Post.identifier).in_([i.identifier for i in items])
+            )
+        )).all()
+    ) if items else set()
+    nuevos = [i for i in items if i.identifier not in existentes]
 
-    # Cuales de estos no teniamos ya guardados.
-    nuevos = items
     if nuevos:
-        existentes = set(
-            (await session.exec(
-                select(col(Post.identifier)).where(
-                    col(Post.identifier).in_([i.identifier for i in nuevos])
-                )
-            )).all()
-        )
-        nuevos = [i for i in nuevos if i.identifier not in existentes]
+        sub_topic.last_id = items[-1].identifier
+        sub_topic.page += 1
+        sub_topic.count += len(nuevos)
+        sub_topic.empty_streak = 0
 
-    advance_subtopic(
-        sub_topic,
-        len(items),
-        len(nuevos),
-        items[-1].identifier if items else None,
-    )
+        for item in nuevos:
+            session.add(Post(
+                type=item.type,
+                identifier=item.identifier,
+                created_at=item.created_at,
+                text=item.text,
+                favorite_count=item.favorite_count,
+                retweet_count=item.retweet_count,
+                reply_count=item.reply_count,
+                topic_id=sub_topic.topic_id,
+                subtopic_id=sub_topic.id,
+                subtopic=sub_topic,
+            ))
+    else:
+        sub_topic.empty_streak += 1
+
     session.add(sub_topic)
-
-    for item in nuevos:
-        post: Post = Post(
-            type=item.type,
-            identifier=item.identifier,
-            created_at=item.created_at,
-            text=item.text,
-            favorite_count=item.favorite_count,
-            retweet_count=item.retweet_count,
-            reply_count=item.reply_count,
-            topic_id=sub_topic.topic_id,            
-            subtopic_id=sub_topic.id,
-            subtopic=sub_topic,
-        )
-        session.add(post)
-        
     await session.flush()
 
     return {
