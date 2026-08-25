@@ -38,7 +38,7 @@
     {
       "parameters": {
         "promptType": "define",
-        "text": "=Clasifica el tono emocional general de cada publicación paraguaya. El texto puede estar en español, guaraní o jopara. No clasifiques si la postura, causa o intención del autor te parece correcta o favorable; clasifica cómo está expresado el mensaje.\n\nCriterios:\n- POS: expresa una valoración favorable, satisfacción, alegría, entusiasmo, agradecimiento, apoyo o aprobación con tono positivo.\n- NEG: expresa una valoración desfavorable, queja, enojo, rechazo, crítica, hostilidad, insulto o insatisfacción.\n- NEU: es principalmente informativa, no expresa una valoración clara, contiene sentimientos equilibrados o el sentimiento es ambiguo.\n\nAplica esta prioridad de decisión:\n1. Si existe ataque directo, burla, reproche, insulto, queja, hostilidad o confrontación explícita, clasifica NEG. Esta prioridad se mantiene aunque el texto también exprese apoyo, aprobación o defienda una causa o derecho.\n2. Si no existe ese contenido negativo y predomina una valoración favorable o una emoción positiva, clasifica POS.\n3. Si no predomina una emoción positiva ni negativa, clasifica NEU.\n\nUna respuesta institucional que se limita a lamentar un inconveniente, ofrecer ayuda o proporcionar canales de atención es NEU si no expresa satisfacción, alegría o aprobación.\n\nConsidera negaciones, intensificadores, expresiones coloquiales e ironía cuando sea evidente. Cuando aparezca vocabulario guaraní o jopara, interprétalo dentro de la oración completa y determina si modifica, refuerza o niega la valoración. La mera presencia de guaraní no define por sí sola el sentimiento.\n\nDevuelve exactamente una clasificación por cada publicación y conserva su id original sin modificarlo. Si no hay publicaciones, devuelve una lista de clasificaciones vacía.\n\nPublicaciones:\n{{ JSON.stringify($json.items) }}",
+        "text": "=Clasifica el tono emocional general de cada publicación paraguaya. El texto puede estar en español, guaraní o jopara. No clasifiques si la postura, causa o intención del autor te parece correcta o favorable; clasifica cómo está expresado el mensaje.\n\nCriterios:\n- POS: expresa una valoración favorable, satisfacción, alegría, entusiasmo, agradecimiento, apoyo o aprobación con tono positivo.\n- NEG: expresa una valoración desfavorable, queja, enojo, rechazo, crítica, hostilidad, insulto o insatisfacción.\n- NEU: es principalmente informativa, no expresa una valoración clara, contiene sentimientos equilibrados o el sentimiento es ambiguo.\n\nAplica esta prioridad de decisión:\n1. Si existe ataque directo, burla, reproche, insulto, queja, hostilidad o confrontación explícita, clasifica NEG. Esta prioridad se mantiene aunque el texto también exprese apoyo, aprobación o defienda una causa o derecho.\n2. Si no existe ese contenido negativo y predomina una valoración favorable o una emoción positiva, clasifica POS.\n3. Si no predomina una emoción positiva ni negativa, clasifica NEU.\n\nUna respuesta institucional que se limita a lamentar un inconveniente, ofrecer ayuda o proporcionar canales de atención es NEU si no expresa satisfacción, alegría o aprobación.\n\nConsidera negaciones, intensificadores, expresiones coloquiales e ironía cuando sea evidente. Cuando aparezca vocabulario guaraní o jopara, interprétalo dentro de la oración completa y determina si modifica, refuerza o niega la valoración. La mera presencia de guaraní no define por sí sola el sentimiento.\n\nEn `classifications`, usa cada id recibido como clave exactamente una vez y asigna como valor POS, NEG o NEU. No omitas ni inventes identificadores.\n\nPublicaciones:\n{{ JSON.stringify($json.items) }}",
         "hasOutputParser": true,
         "options": {}
       },
@@ -79,7 +79,7 @@
     {
       "parameters": {
         "schemaType": "manual",
-        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"classifications\": {\n      \"type\": \"array\",\n      \"description\": \"Una clasificación por cada publicación recibida\",\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"id\": {\n            \"type\": \"string\",\n            \"description\": \"Identificador original de la publicación\"\n          },\n          \"sentiment\": {\n            \"type\": \"string\",\n            \"enum\": [\"POS\", \"NEG\", \"NEU\"],\n            \"description\": \"Sentimiento de la publicación\"\n          }\n        },\n        \"required\": [\"id\", \"sentiment\"],\n        \"additionalProperties\": false\n      }\n    }\n  },\n  \"required\": [\"classifications\"],\n  \"additionalProperties\": false\n}"
+        "inputSchema": "={{ (() => { const ids = Object.values($json.items ?? {}).map((item) => String(item.id)); return JSON.stringify({ type: 'object', properties: { classifications: { type: 'object', properties: Object.fromEntries(ids.map((id) => [id, { type: 'string', enum: ['POS', 'NEG', 'NEU'] }])), required: ids, additionalProperties: false } }, required: ['classifications'], additionalProperties: false }); })() }}"
       },
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
       "typeVersion": 1.3,
@@ -92,7 +92,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const mergeItems = $input.all();\n\nconst topic = mergeItems.find(({ json }) =>\n  json.topic_id !== undefined,\n)?.json;\n\nconst classifications = mergeItems.find(({ json }) =>\n  Array.isArray(json.output?.classifications),\n)?.json.output.classifications;\n\nconst originalItems = Object.values(\n  $('Scrapper').first().json.items ?? {},\n);\n\nif (!topic) {\n  throw new Error('No se encontró el tópico');\n}\n\nif (!classifications) {\n  throw new Error('No se encontraron las clasificaciones');\n}\n\nconst originalById = new Map(\n  originalItems.map((item) => [String(item.id), item]),\n);\n\nconst classifiedAt = new Date().toISOString();\nconst seenIds = new Set();\n\nconst classifiedItems = classifications.map(({ id, sentiment }) => {\n  const identifier = String(id);\n  const original = originalById.get(identifier);\n\n  if (!original) {\n    throw new Error(`No se encontró el tweet con ID ${identifier}`);\n  }\n\n  if (seenIds.has(identifier)) {\n    throw new Error(`ID duplicado: ${identifier}`);\n  }\n\n  if (!['POS', 'NEG', 'NEU'].includes(sentiment)) {\n    throw new Error(`Sentimiento inválido: ${sentiment}`);\n  }\n\n  seenIds.add(identifier);\n\n  const { id: _, ...tweet } = original;\n\n  return {\n    ...tweet,\n    identifier,\n    sentiment_llm: sentiment,\n    llm_model: $env.MODEL,\n    llm_prompt_version: '2',\n    llm_classified_at: classifiedAt,\n  };\n});\n\nreturn [\n  {\n    json: {\n      id: topic.id,\n      empty_streak: topic.empty_streak,\n      topic_id: topic.topic_id,\n      name: topic.name,\n      page: topic.page,\n      items: classifiedItems,\n    },\n  },\n];"
+        "jsCode": "const llmItems = $input.all();\nconst topic = $('Get available').first().json;\n\nconst classifications = llmItems.find(({ json }) =>\n  json.output?.classifications &&\n  typeof json.output.classifications === 'object' &&\n  !Array.isArray(json.output.classifications),\n)?.json.output.classifications;\n\nconst originalItems = Object.values(\n  $('Scrapper').first().json.items ?? {},\n);\n\nif (!classifications) {\n  throw new Error('No se encontraron las clasificaciones');\n}\n\nconst originalById = new Map(\n  originalItems.map((item) => [String(item.id), item]),\n);\n\nconst classifiedAt = new Date().toISOString();\n\nconst classifiedItems = Object.entries(classifications).map(([id, sentiment]) => {\n  const identifier = String(id);\n  const original = originalById.get(identifier);\n\n  if (!original) {\n    throw new Error(`No se encontró el tweet con ID ${identifier}`);\n  }\n\n  if (!['POS', 'NEG', 'NEU'].includes(sentiment)) {\n    throw new Error(`Sentimiento inválido: ${sentiment}`);\n  }\n\n  const { id: _, ...tweet } = original;\n\n  return {\n    ...tweet,\n    identifier,\n    sentiment_llm: sentiment,\n    llm_model: $env.MODEL,\n    llm_prompt_version: '3',\n    llm_classified_at: classifiedAt,\n  };\n});\n\nreturn [\n  {\n    json: {\n      id: topic.id,\n      empty_streak: topic.empty_streak,\n      topic_id: topic.topic_id,\n      name: topic.name,\n      page: topic.page,\n      items: classifiedItems,\n    },\n  },\n];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -120,17 +120,6 @@
       ],
       "id": "4251eb7b-4179-456a-a67d-d6d125b61d19",
       "name": "Scrapper"
-    },
-    {
-      "parameters": {},
-      "type": "n8n-nodes-base.merge",
-      "typeVersion": 3.2,
-      "position": [
-        2096,
-        352
-      ],
-      "id": "4ce90c68-9110-4ea6-95c8-0e40434172f9",
-      "name": "Merge"
     },
     {
       "parameters": {
@@ -222,11 +211,6 @@
             "node": "Scrapper",
             "type": "main",
             "index": 0
-          },
-          {
-            "node": "Merge",
-            "type": "main",
-            "index": 0
           }
         ]
       ]
@@ -257,9 +241,9 @@
       "main": [
         [
           {
-            "node": "Merge",
+            "node": "Prepare LLM Results",
             "type": "main",
-            "index": 1
+            "index": 0
           }
         ]
       ]
@@ -280,17 +264,6 @@
         [
           {
             "node": "Upload",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Merge": {
-      "main": [
-        [
-          {
-            "node": "Prepare LLM Results",
             "type": "main",
             "index": 0
           }
