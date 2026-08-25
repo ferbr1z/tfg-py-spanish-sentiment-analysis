@@ -2,7 +2,18 @@ import logging
 import os
 import pandas as pd
 
-COLUMNS = ["id", "categoria", "sub_categoria", "tweet", "sentimiento_modelo", "sentimiento"]
+COLUMNS = [
+    "id",
+    "categoria",
+    "sub_categoria",
+    "identifier",
+    "created_at",
+    "text",
+    "sentiment_llm",
+    "llm_model",
+    "llm_prompt_version",
+    "llm_classified_at",
+]
 
 
 class CSVHandler:

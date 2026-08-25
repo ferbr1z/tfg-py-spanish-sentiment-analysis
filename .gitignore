@@ -4,6 +4,8 @@ __pycache__/
 *$py.class
 .python-version
 
+corpus.csv
+
 # Virtual environments
 .venv/
 venv/

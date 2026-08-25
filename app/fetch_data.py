@@ -29,7 +29,7 @@ async def fetch_data(scraper: Scrapper,topic: str,date_init: date,date_end: date
 
     items = get_tweets_text(tweets)
 
-    last_id = items[len(items) - 1]["id"] if items else None
+    last_id = items[len(items) - 1]["identifier"] if items else None
 
     return {
         "items": items,
@@ -39,5 +39,13 @@ async def fetch_data(scraper: Scrapper,topic: str,date_init: date,date_end: date
 def get_tweets_text(tweets: Result[Tweet]) -> dict[int, dict[str, str]]:
     result = {}
     for idx, tweet in enumerate(tweets):
-        result.setdefault(idx, {"id": tweet.id, "text": tweet.text})
+        result.setdefault(
+            idx,
+            {
+                "id": tweet.id,
+                "identifier": tweet.id,
+                "created_at": tweet.created_at,
+                "text": tweet.text,
+            },
+        )
     return result

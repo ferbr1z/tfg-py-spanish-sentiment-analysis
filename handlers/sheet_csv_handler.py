@@ -49,12 +49,17 @@ class SheetCsvHandler:
         self.sheet_client.upload_csv_to_sheet(self.csv_handler.file_path)
         self._synced_rows = len(self.csv_handler.csv)
 
-    def add_tweet(self, tweet_data):
-        return self.add_tweets([tweet_data])
+    def add_tweet(self, tweet, **extra_fields):
+        return self.add_tweets([tweet], **extra_fields)
 
-    def add_tweets(self, tweets_data):
-        """Dedupe + persistir local + append solo de las filas nuevas al sheet."""
-        added = self.csv_handler.add_rows(tweets_data)
+    def add_tweets(self, tweets, **extra_fields):
+        """Dedupe + persistir local + append solo de las filas nuevas al sheet.
+
+        `tweets` son PostSchema. `extra_fields` (p. ej. categoria/sub_categoria)
+        se agregan igual a cada fila del lote.
+        """
+        rows = [{**tweet.model_dump(mode="json"), **extra_fields} for tweet in tweets]
+        added = self.csv_handler.add_rows(rows)
         if added:
             self.csv_handler.save_csv()
 

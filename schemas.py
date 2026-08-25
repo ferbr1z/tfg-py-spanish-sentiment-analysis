@@ -1,4 +1,5 @@
-from datetime import date
+from datetime import date, datetime
+from typing import Literal
 
 from sqlmodel import Field, SQLModel
 
@@ -15,26 +16,29 @@ class SubTopicSchema(SQLModel):
     topic_id: int
 
 
-class PostSchema(SQLModel):
-    type: TweetTypeEnum
+class PostCreateSchema(SQLModel):
     identifier: str
     created_at: str
     text: str
-    favorite_count: int
-    retweet_count: int
-    reply_count: int
-    topic_id: int
-    subtopic_id: int
-    # uploaded: bool = Field(default=False)
+    sentiment_llm: Literal["POS", "NEG", "NEU"]
+    llm_model: str
+    llm_prompt_version: str
+    llm_classified_at: datetime
+
+
+class PostSchema(PostCreateSchema):
+    id: int
+
 
 class TestSchema(SQLModel):
     type: TweetTypeEnum
     topic: str
     last_id: str | None = None
 
+
 class ScrapperSchema(SQLModel):
     date_init: date
     date_end: date
-    name:str
+    name: str
     type: TweetTypeEnum
     last_id: str | None = None
