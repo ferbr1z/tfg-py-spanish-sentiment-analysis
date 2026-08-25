@@ -154,6 +154,52 @@
       ],
       "id": "2bec0fdb-6a25-42e5-a26d-3971717599a2",
       "name": "Upload"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "f70634fc-493f-49c1-9058-75e43b52054a",
+              "leftValue": "={{ Object.keys($json.items ?? {}).length }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1808,
+        352
+      ],
+      "id": "7a9d7fe0-8d45-4a3a-9b75-4d8f2c44f401",
+      "name": "Has Publications"
+    },
+    {
+      "parameters": {
+        "jsCode": "const topic = $('Get available').first().json;\n\nreturn [\n  {\n    json: {\n      id: topic.id,\n      empty_streak: topic.empty_streak,\n      topic_id: topic.topic_id,\n      name: topic.name,\n      page: topic.page,\n      items: [],\n    },\n  },\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2096,
+        160
+      ],
+      "id": "9c31d77e-5c0b-45b4-84d6-8995269ef39e",
+      "name": "Prepare Empty Result"
     }
   ],
   "pinData": {},
@@ -222,7 +268,7 @@
       "main": [
         [
           {
-            "node": "LLM Sentiment Classifier",
+            "node": "Has Publications",
             "type": "main",
             "index": 0
           }
@@ -245,6 +291,35 @@
         [
           {
             "node": "Prepare LLM Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Publications": {
+      "main": [
+        [
+          {
+            "node": "LLM Sentiment Classifier",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prepare Empty Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Empty Result": {
+      "main": [
+        [
+          {
+            "node": "Upload",
             "type": "main",
             "index": 0
           }
