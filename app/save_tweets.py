@@ -71,6 +71,8 @@ async def save_tweets(
     else:
         sub_topic.empty_streak += 1
 
+    sub_topic.exhausted = should_exhaust(sub_topic)
+
     session.add(sub_topic)
     await session.flush()
 
@@ -92,5 +94,5 @@ async def save_tweets(
         "page": sub_topic.page,
         "last_id": sub_topic.last_id,
         "empty_streak": sub_topic.empty_streak,
-        "should_exhaust": should_exhaust(sub_topic),
+        "should_exhaust": sub_topic.exhausted,
     }
