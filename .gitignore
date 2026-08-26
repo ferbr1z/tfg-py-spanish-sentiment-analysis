@@ -4,6 +4,9 @@ __pycache__/
 *$py.class
 .python-version
 
+token-drive.pickle
+token-sheets.pickle
+
 corpus.csv
 
 # Virtual environments
