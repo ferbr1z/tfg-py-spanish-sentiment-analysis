@@ -81,7 +81,12 @@ class SheetCsvHandler:
             .to_dict("records")
         )
         rows = [[str(row.get(col, "")) for col in COLUMNS] for row in pending_records]
-        start_row = self._synced_rows + 2  # +1 por header, +1 por 1-based
+        if self._synced_rows == 0:
+            # Sheet vacío: escribimos el header (COLUMNS) en la fila 1 antes de los datos.
+            rows = [list(COLUMNS)] + rows
+            start_row = 1
+        else:
+            start_row = self._synced_rows + 2  # +1 por header, +1 por 1-based
         self.sheet_client.append_rows(rows, start_row)
-        self._synced_rows += len(rows)
+        self._synced_rows += len(pending_records)
         return added
