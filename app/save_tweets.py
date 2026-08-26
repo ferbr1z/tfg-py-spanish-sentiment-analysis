@@ -46,9 +46,11 @@ async def save_tweets(
             nuevos.append(item)
             identifiers_seen.add(item.identifier)
 
+    if items:
+        sub_topic.last_id = items[-1].identifier
+
     posts: list[Post] = []
     if nuevos:
-        sub_topic.last_id = items[-1].identifier
         sub_topic.page += 1
         sub_topic.count += len(nuevos)
         sub_topic.empty_streak = 0
