@@ -1,27 +1,39 @@
+import asyncio
 import logging
 
-from twikit import Client, Tweet
-from twikit.utils import Result
+from xdk import Client
 
-from scrapper.TweetTypeEnum import TweetTypeEnum
-from .compat import CompatibleClientTransaction
-from .cookies import get_cookies
+from config import X_BEARER_TOKEN
+
+POST_FIELDS = ["created_at", "text"]
+
 
 class Scrapper:
     def __init__(self):
-        self.client = Client('en-US')
-        self.client.client_transaction = CompatibleClientTransaction()
-        self.client.set_cookies(get_cookies())
+        self.client = Client(bearer_token=X_BEARER_TOKEN)
 
     async def get_by_id(self, id: str):
         try:
-            return await self.client.get_tweet_by_id(id)
+            response = await asyncio.to_thread(self.client.posts.get_by_id, id, post_fields=POST_FIELDS)
+            return response.data
         except Exception as e:
             logging.error(e)
 
-    async def get_batch(self, query: str, count: int = 20, tweet_type: TweetTypeEnum = TweetTypeEnum.LATEST) -> Result[Tweet]:
-        return await self.client.search_tweet(
-            query=query,
-            product=tweet_type.product,
-            count=count,
-        )
+    async def get_batch(self, query: str, count: int = 50, start_time: str | None = None, end_time: str | None = None, until_id: str | None = None):
+        def _first_page():
+            pages = self.client.posts.search_all(
+                query=query,
+                max_results=count,
+                start_time=start_time,
+                end_time=end_time,
+                until_id=until_id,
+                post_fields=POST_FIELDS,
+                sort_order="recency",
+            )
+            return next(iter(pages), None)
+
+        response = await asyncio.to_thread(_first_page)
+        return response.data if response and response.data else []
+
+    async def close(self):
+        self.client.session.close()

@@ -17,7 +17,7 @@ async def lifespan(app: FastAPI):
     try:
         yield
     finally:
-        await app.state.scraper.client.http.aclose()
+        await app.state.scraper.close()
 
 
 def get_scraper(request: Request) -> Scrapper:
