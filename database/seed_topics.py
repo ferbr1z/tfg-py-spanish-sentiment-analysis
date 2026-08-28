@@ -3,11 +3,13 @@ Seeder de Topics/SubTopics desde un CSV de dos columnas: topic, subtopic.
 
 Uso:
     python -m database.seed_topics                            # usa database/wordlist.csv
+    python -m database.seed_topics wordlist1.csv              # busca dentro de database/
     python -m database.seed_topics ruta/al/archivo.csv
     python -m database.seed_topics ruta/al/archivo.csv --no-header
 """
 import argparse
 import asyncio
+import sys
 from pathlib import Path
 
 import pandas as pd
@@ -19,6 +21,15 @@ from database.models import SubTopic, Topic
 
 
 DEFAULT_CSV = Path(__file__).resolve().parent / "wordlist.csv"
+
+
+def resolve_csv_path(csv_path: Path) -> Path:
+    """Resuelve nombres simples de CSV con respecto al directorio database/."""
+    if csv_path.is_file() or csv_path.is_absolute():
+        return csv_path
+
+    database_csv_path = DEFAULT_CSV.parent / csv_path
+    return database_csv_path if database_csv_path.is_file() else csv_path
 
 
 def read_pairs(csv_path: Path, *, has_header: bool = True, delimiter: str = ",") -> pd.DataFrame:
@@ -90,18 +101,22 @@ def main() -> None:
     parser.add_argument("--delimiter", default=",", help="Separador de columnas (por defecto ',')")
     args = parser.parse_args()
 
-    if not args.csv_path.is_file():
+    csv_path = resolve_csv_path(args.csv_path)
+    if not csv_path.is_file():
         parser.error(f"No existe el archivo: {args.csv_path}")
 
     async def run() -> None:
         try:
             await seed_from_csv(
-                args.csv_path,
+                csv_path,
                 has_header=not args.no_header,
                 delimiter=args.delimiter,
             )
         finally:
             await dispose_engine()
+
+    if sys.platform == "win32":
+        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
     asyncio.run(run())
 
