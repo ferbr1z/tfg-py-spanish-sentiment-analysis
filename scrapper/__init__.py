@@ -1,8 +1,9 @@
-from .compat import apply_twikit_patches
-
-apply_twikit_patches()  # debe correr antes de instanciar cualquier twikit.Client
-
-from .client import Scrapper
+from config import USE_OLD
 from .TweetTypeEnum import TweetTypeEnum
+
+if USE_OLD:
+    from .old import Scrapper
+else:
+    from .client import Scrapper
 
 __all__ = ['Scrapper', 'TweetTypeEnum']

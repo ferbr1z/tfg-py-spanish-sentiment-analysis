@@ -33,5 +33,14 @@ PAGES_PER_STEP = int(os.getenv("PAGES_PER_STEP", "2"))
 # Subirlo da margen ante fallos puntuales de X.
 EMPTY_STREAK_LIMIT = int(os.getenv("EMPTY_STREAK_LIMIT", "1"))
 
-AUTH_TOKEN = required_env("AUTH_TOKEN")
-CT0 = required_env("CT0")
+USE_OLD = os.getenv("USE_OLD", "false").lower() == "true"
+
+AUTH_TOKEN = os.getenv("AUTH_TOKEN")
+CT0 = os.getenv("CT0")
+X_BEARER_TOKEN = os.getenv("X_BEARER_TOKEN")
+
+if USE_OLD:
+    AUTH_TOKEN = required_env("AUTH_TOKEN")
+    CT0 = required_env("CT0")
+else:
+    X_BEARER_TOKEN = required_env("X_BEARER_TOKEN")
