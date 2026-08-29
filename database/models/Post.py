@@ -1,9 +1,15 @@
 from datetime import datetime
+from enum import Enum
 
 from sqlalchemy import Column, DateTime
 from sqlmodel import Field, Relationship, SQLModel
 
 from .Topic import SubTopic, Topic
+
+
+class Lang(str, Enum):
+    es = "es"
+    jopara = "jopara"
 
 
 class Post(SQLModel, table=True):
@@ -20,6 +26,16 @@ class Post(SQLModel, table=True):
         default=None,
         sa_column=Column(DateTime(timezone=True), nullable=True),
     )
+
+    lang: Lang | None = Field(default=None)
+    has_irony: bool = Field(default=False)
+    mixed: bool = Field(default=False)
+
+    discarded: bool = Field(default=False)
+    discard_reason: str | None = Field(default=None)
+    llm_reason: str | None = Field(default=None)
+
+    source_type: str | None = Field(default=None)         # "ciudadano" | "medio" | "institucional" | "otro"
 
     topic_id: int = Field(foreign_key="topic.id")
     subtopic_id: int = Field(foreign_key="subtopic.id")

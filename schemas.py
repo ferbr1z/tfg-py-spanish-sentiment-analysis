@@ -3,6 +3,7 @@ from typing import Literal
 
 from sqlmodel import Field, SQLModel
 
+from database.models.Post import Lang
 from scrapper.TweetTypeEnum import TweetTypeEnum
 
 
@@ -24,6 +25,16 @@ class PostCreateSchema(SQLModel):
     llm_model: str
     llm_prompt_version: str
     llm_classified_at: datetime
+
+    lang: Lang | None = None
+    has_irony: bool = False
+    mixed: bool = False
+
+    discarded: bool = False
+    discard_reason: str | None = None
+    llm_reason: str | None = None
+
+    source_type: str | None = None
 
 
 class PostSchema(PostCreateSchema):

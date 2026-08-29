@@ -10,9 +10,16 @@ COLUMNS = [
     "created_at",
     "text",
     "sentiment_llm",
+    "llm_reason",
     "llm_model",
     "llm_prompt_version",
     "llm_classified_at",
+    "lang",
+    "has_irony",
+    "mixed",
+    "discarded",
+    "discard_reason",
+    "source_type",
 ]
 
 
