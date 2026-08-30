@@ -11,7 +11,7 @@
             "type": "string",
             "description": "Identificador original de la publicación"
           },
-          "label": {
+          "sentiment": {
             "type": "string",
             "enum": [
               "POS",
@@ -19,16 +19,11 @@
               "NEU"
             ],
             "description": "Sentimiento de la publicación"
-          },
-          "hasIrony": {
-            "type": "boolean",
-            "description": "Indica si la publicación contiene ironía o sarcasmo"
           }
         },
         "required": [
           "id",
-          "label",
-          "hasIrony"
+          "sentiment"
         ],
         "additionalProperties": false
       }
