@@ -6,8 +6,7 @@
         "rule": {
           "interval": [
             {
-              "field": "minutes",
-              "minutesInterval": 1
+              "field": "seconds"
             }
           ]
         }
@@ -99,7 +98,7 @@
         "url": "={{ $env.API_URL }}/scrapper",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"date_init\": \"{{$env.SINCE_DATE}}\",\n  \"date_end\": \"{{$env.UNTIL_DATE}}\",\n  \"name\": \"{{ $json.name }}\",\n  \"type\": \"Latest\",\n  \"last_id\": \"{{ $json.last_id ?? \"\" }}\"\n}",
+        "jsonBody": "={\n  \"date_init\": \"{{$env.SINCE_DATE}}\",\n  \"date_end\": \"{{$env.UNTIL_DATE}}\",\n  \"name\": \"{{ $json.name }}\",\n  \"type\": \"Latest\",\n  \"last_id\": \"{{ $json.last_id ?? \"\" }}\",\n  \"pagination_token\": \"{{ $json.pagination_token ?? \"\" }}\"\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
@@ -115,6 +114,15 @@
       "parameters": {
         "method": "POST",
         "url": "={{ $env.API_URL }}/upload-data/{{ $json.id }}",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "pagination_token",
+              "value": "={{ $('Scrapper').first().json.pagination_token ?? '' }}"
+            }
+          ]
+        },
         "sendBody": true,
         "specifyBody": "=json",
         "bodyParameters": {
@@ -303,13 +311,13 @@
       ]
     }
   },
-  "active": true,
+  "active": false,
   "settings": {
     "executionOrder": "v1",
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "33e6b0f6-021b-4ab5-9d8a-fa8e0b361ef4",
+  "versionId": "cef9553b-4f45-4c16-bc34-112f65cbe61b",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "5dce643ea41a21fedf518a181c08b89c51c188b77cf923dc322fb226ebf00c4c"
