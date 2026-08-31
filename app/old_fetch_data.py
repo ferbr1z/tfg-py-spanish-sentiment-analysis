@@ -12,7 +12,7 @@ async def prepare_topic(topic: str, date_init: date, date_end: date, last_id: st
     date_init_format = date_init.strftime("%Y-%m-%d")
     date_end_format = date_end.strftime("%Y-%m-%d")
 
-    query = f"{topic} place_country:{COUNTRY} lang:es"
+    query = f"{topic} lang:es"
 
     if date_init_format:
         query += f" since:{date_init_format}"
@@ -24,7 +24,8 @@ async def prepare_topic(topic: str, date_init: date, date_end: date, last_id: st
     return query
 
 
-async def fetch_data(scraper: Scrapper,topic: str,date_init: date,date_end: date, last_id: str | None = None, limit: int = 20) -> dict[str, object]:
+async def fetch_data(scraper: Scrapper,topic: str,date_init: date,date_end: date, last_id: str | None = None, pagination_token: str | None = None, limit: int = 20) -> dict[str, object]:
+    # pagination_token es solo de xdk; twikit pagina por max_id (last_id) y lo ignora.
     tweets = await scraper.get_batch(await prepare_topic(topic, date_init, date_end, last_id))
 
     items = get_tweets_text(tweets)
@@ -34,6 +35,7 @@ async def fetch_data(scraper: Scrapper,topic: str,date_init: date,date_end: date
     return {
         "items": items,
         "last_id": last_id,
+        "pagination_token": None,
     }
 
 def get_tweets_text(tweets: Result[Tweet]) -> dict[int, dict[str, str]]:

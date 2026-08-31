@@ -3,14 +3,12 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 
 from config import SHEET_ID
-from database import create_db_and_tables
 from handlers import SheetCsvHandler
 from scrapper import Scrapper
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    await create_db_and_tables()
     app.state.scraper = Scrapper()
     app.state.sheet_csv_handler = SheetCsvHandler(SHEET_ID)
     app.state.sheet_csv_handler.sync_sheet_to_csv()

@@ -6,16 +6,17 @@ from scrapper import Scrapper
 
 
 async def prepare_topic(topic: str) -> str:
-    return f"{topic} place_country:{COUNTRY} lang:es"
+    return f"{topic} lang:es"
 
 
-async def fetch_data(scraper: Scrapper,topic: str,date_init: date,date_end: date, last_id: str | None = None, limit: int = 50) -> dict[str, object]:
-    tweets = await scraper.get_batch(
+async def fetch_data(scraper: Scrapper,topic: str,date_init: date,date_end: date, last_id: str | None = None, pagination_token: str | None = None, limit: int = 20) -> dict[str, object]:
+    tweets, next_token = await scraper.get_batch(
         await prepare_topic(topic),
         count=limit,
         start_time=f"{date_init:%Y-%m-%d}T00:00:00Z",
         end_time=f"{date_end:%Y-%m-%d}T00:00:00Z",
-        until_id=str(int(last_id)) if last_id else None,
+        until_id=str(int(last_id)) if last_id and not pagination_token else None,
+        pagination_token=pagination_token,
     )
 
     items = get_tweets_text(tweets)
@@ -25,6 +26,7 @@ async def fetch_data(scraper: Scrapper,topic: str,date_init: date,date_end: date
     return {
         "items": items,
         "last_id": last_id,
+        "pagination_token": next_token,
     }
 
 def get_tweets_text(tweets) -> dict[int, dict[str, str]]:

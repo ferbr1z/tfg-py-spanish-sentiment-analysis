@@ -48,10 +48,11 @@ async def available_topics(session: AsyncSession = Depends(get_session)):
 async def upload_data(
     subtopic_id: int,
     items: list[PostCreateSchema],
+    pagination_token: str | None = None,
     session: AsyncSession = Depends(get_session),
     sheet_csv_handler: SheetCsvHandler = Depends(get_sheet_csv_handler),
 ):
-    return await save_tweets(subtopic_id, items, session, sheet_csv_handler)
+    return await save_tweets(subtopic_id, items, session, sheet_csv_handler, pagination_token)
 
 
 @app.post("/subtopic/{subtopic_id}/exhaust")
@@ -73,7 +74,7 @@ async def exhaust_subtopic(
 
 @app.post("/scrapper")
 async def scrapper(topic: ScrapperSchema, scraper = Depends(get_scraper)):
-    return await fetch_data(scraper, topic.name, topic.date_init, topic.date_end, topic.last_id)
+    return await fetch_data(scraper, topic.name, topic.date_init, topic.date_end, topic.last_id, topic.pagination_token)
 
 @app.post("/test")
 async def test(topic: TestSchema, scraper: Scrapper = Depends(get_scraper)):
@@ -83,4 +84,4 @@ async def test(topic: TestSchema, scraper: Scrapper = Depends(get_scraper)):
     name = topic.topic
     last_id = topic.last_id
 
-    return await fetch_data(scraper, name, date_init, date_end, last_id=last_id)
+    return await fetch_data(scraper, name, date_init, date_end, last_id=last_id, pagination_token=topic.pagination_token)
