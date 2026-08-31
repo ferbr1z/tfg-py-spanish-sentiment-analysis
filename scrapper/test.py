@@ -26,7 +26,7 @@ async def main():
     date_init = date.today() - timedelta(days=365 * 3)
     date_end = date.today()
     query = f"{TOPIC} place_country:{COUNTRY} lang:es"
-    result = await scraper.get_batch(
+    result, _ = await scraper.get_batch(
         query,
         count=COUNT,
         start_time=f"{date_init:%Y-%m-%d}T00:00:00Z",

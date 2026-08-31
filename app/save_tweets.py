@@ -15,6 +15,7 @@ async def save_tweets(
     items: list[PostCreateSchema],
     session: AsyncSession,
     sheet_csv_handler: SheetCsvHandler,
+    pagination_token: str | None = None,
 ) -> dict[str, Any]:
     sub_topic: SubTopic | None = await session.get(SubTopic, sub_topic_id)
 
@@ -48,6 +49,10 @@ async def save_tweets(
 
     if items:
         sub_topic.last_id = items[-1].identifier
+
+    # last_id se guarda siempre; el token de paginacion solo lo trae xdk
+    # (con twikit llega None y no molesta).
+    sub_topic.pagination_token = pagination_token
 
     posts: list[Post] = []
     if nuevos:
@@ -102,6 +107,7 @@ async def save_tweets(
         "guardados": len(nuevos),
         "page": sub_topic.page,
         "last_id": sub_topic.last_id,
+        "pagination_token": sub_topic.pagination_token,
         "empty_streak": sub_topic.empty_streak,
         "should_exhaust": sub_topic.exhausted,
     }

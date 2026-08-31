@@ -19,6 +19,10 @@ class SubTopic(SQLModel, table=True):
     # pagina de nuevo y todo se detectaria como agotado.
     last_id: str | None = Field(default=None)
 
+    # Token de paginacion de xdk (next_token). Se usa solo cuando el backend
+    # es xdk, para retomar la busqueda desde donde quedo.
+    pagination_token: str | None = Field(default=None)
+
     # Lotes seguidos sin posts nuevos.
     empty_streak: int = Field(default=0)
     exhausted: bool = Field(default=False, index=True)

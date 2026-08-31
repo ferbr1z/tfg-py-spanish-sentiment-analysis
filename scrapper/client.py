@@ -19,7 +19,7 @@ class Scrapper:
         except Exception as e:
             logging.error(e)
 
-    async def get_batch(self, query: str, count: int = 50, start_time: str | None = None, end_time: str | None = None, until_id: str | None = None):
+    async def get_batch(self, query: str, count: int = 20, start_time: str | None = None, end_time: str | None = None, until_id: str | None = None, pagination_token: str | None = None):
         def _first_page():
             pages = self.client.posts.search_all(
                 query=query,
@@ -27,13 +27,16 @@ class Scrapper:
                 start_time=start_time,
                 end_time=end_time,
                 until_id=until_id,
+                pagination_token=pagination_token,
                 post_fields=POST_FIELDS,
                 sort_order="recency",
             )
             return next(iter(pages), None)
 
         response = await asyncio.to_thread(_first_page)
-        return response.data if response and response.data else []
+        tweets = response.data if response and response.data else []
+        next_token = getattr(response.meta, "next_token", None) if response and response.meta else None
+        return tweets, next_token
 
     async def close(self):
         self.client.session.close()

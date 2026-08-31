@@ -45,6 +45,7 @@ class TestSchema(SQLModel):
     type: TweetTypeEnum
     topic: str
     last_id: str | None = None
+    pagination_token: str | None = None
 
 
 class ScrapperSchema(SQLModel):
@@ -53,3 +54,4 @@ class ScrapperSchema(SQLModel):
     name: str
     type: TweetTypeEnum
     last_id: str | None = None
+    pagination_token: str | None = None
