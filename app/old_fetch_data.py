@@ -9,7 +9,7 @@ from scrapper import Scrapper
 
 
 async def prepare_topic(topic: str, date_init: date | None = None, date_end: date | None = None, last_id: str | None = None) -> str:
-    query = f"{topic} place_country:{COUNTRY} lang:es"
+    query = f"{topic} place_country:{COUNTRY} lang:es -filter:retweets"
 
     if date_init:
         query += f" since:{date_init:%Y-%m-%d}"
