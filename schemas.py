@@ -49,8 +49,8 @@ class TestSchema(SQLModel):
 
 
 class ScrapperSchema(SQLModel):
-    date_init: date
-    date_end: date
+    date_init: date | None = None
+    date_end: date | None = None
     name: str
     type: TweetTypeEnum
     last_id: str | None = None
