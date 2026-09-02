@@ -31,7 +31,7 @@ PAGES_PER_STEP = int(os.getenv("PAGES_PER_STEP", "2"))
 
 # Lotes seguidos sin posts nuevos para dar por agotado un subtema.
 # Subirlo da margen ante fallos puntuales de X.
-EMPTY_STREAK_LIMIT = int(os.getenv("EMPTY_STREAK_LIMIT", "1"))
+EMPTY_STREAK_LIMIT = int(os.getenv("EMPTY_STREAK_LIMIT", "3"))
 
 USE_OLD = os.getenv("USE_OLD", "false").lower() == "true"
 

@@ -1,6 +1,7 @@
 import pandas as pd
 import ezsheets
 import os
+import ssl
 import time
 from pathlib import Path
 
@@ -59,9 +60,13 @@ def _is_transient_network_error(exc: BaseException) -> bool:
         "timeout",
         "temporarily unavailable",
         "broken pipe",
+        "eof occurred in violation of protocol",
+        "unexpected eof",
     )
 
     for error in _iter_exception_chain(exc):
+        if isinstance(error, ssl.SSLEOFError):
+            return True
         if getattr(error, "winerror", None) in transient_winerrors:
             return True
         msg = str(error).lower()

@@ -79,7 +79,7 @@ async def _patched_search_timeline(
     }
     if cursor is not None:
         variables["cursor"] = cursor
-    return await self.gql_get(
+    return await self.gql_post(
         _gql.Endpoint.SEARCH_TIMELINE,
         variables,
         SEARCH_TIMELINE_FEATURES,

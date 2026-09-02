@@ -16,7 +16,7 @@ async def get_available_subtopic(session: AsyncSession) -> SubTopic | None:
             SubTopic.exhausted == False,
             SubTopic.page < PAGE_DEPTH
         )
-        .order_by(SubTopic.empty_streak, SubTopic.page, SubTopic.id)
+        .order_by(SubTopic.page, SubTopic.empty_streak, SubTopic.id)
         .limit(1)
     )
     result = await session.exec(statement)

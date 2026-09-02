@@ -1,41 +1,53 @@
 {
-  "type": "object",
-  "properties": {
-    "classifications": {
-      "type": "array",
-      "description": "Una clasificación por cada publicación recibida",
-      "items": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "description": "Identificador original de la publicación"
-          },
-          "label": {
-            "type": "string",
-            "enum": [
-              "POS",
-              "NEG",
-              "NEU"
-            ],
-            "description": "Sentimiento de la publicación"
-          },
-          "hasIrony": {
-            "type": "boolean",
-            "description": "Indica si la publicación contiene ironía o sarcasmo"
-          }
-        },
-        "required": [
-          "id",
-          "label",
-          "hasIrony"
-        ],
-        "additionalProperties": false
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "string",
+        "description": "Identificador original de la publicación"
+      },
+      "llm_reason": {
+        "type": "string",
+        "description": "Justificación sentimental breve"
+      },
+      "source_type": {
+        "type": "string",
+        "enum": ["ciudadano", "medio", "institucional", "otro"]
+      },
+      "sentiment_llm": {
+        "type": "string",
+        "enum": ["POS", "NEG", "NEU"]
+      },
+      "has_irony": {
+        "type": "boolean"
+      },
+      "mixed": {
+        "type": "boolean"
+      },
+      "lang": {
+        "type": ["string", "null"],
+        "enum": ["es", "jopara", null]
+      },
+      "discarded": {
+        "type": "boolean"
+      },
+      "discard_reason": {
+        "type": ["string", "null"],
+        "enum": ["guarani", "ininteligible", null]
       }
-    }
-  },
-  "required": [
-    "classifications"
-  ],
-  "additionalProperties": false
+    },
+    "required": [
+      "id",
+      "llm_reason",
+      "source_type",
+      "sentiment_llm",
+      "has_irony",
+      "mixed",
+      "lang",
+      "discarded",
+      "discard_reason"
+    ],
+    "additionalProperties": false
+  }
 }
