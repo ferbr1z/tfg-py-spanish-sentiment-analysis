@@ -8,13 +8,8 @@ from scrapper import Scrapper
 
 
 
-async def prepare_topic(
-    topic: str,
-    date_init: date | None = None,
-    date_end: date | None = None,
-    last_id: str | None = None,
-) -> str:
-    query = f"{topic} place_country:{COUNTRY} lang:es"
+async def prepare_topic(topic: str, date_init: date | None = None, date_end: date | None = None, last_id: str | None = None) -> str:
+    query = f"{topic} place_country:{COUNTRY} lang:es -filter:retweets"
 
     if date_init:
         query += f" since:{date_init:%Y-%m-%d}"
@@ -26,15 +21,7 @@ async def prepare_topic(
     return query
 
 
-async def fetch_data(
-    scraper: Scrapper,
-    topic: str,
-    date_init: date | None = None,
-    date_end: date | None = None,
-    last_id: str | None = None,
-    pagination_token: str | None = None,
-    limit: int = 20,
-) -> dict[str, object]:
+async def fetch_data(scraper: Scrapper,topic: str,date_init: date | None = None,date_end: date | None = None, last_id: str | None = None, pagination_token: str | None = None, limit: int = 20) -> dict[str, object]:
     # pagination_token es solo de xdk; twikit pagina por max_id (last_id) y lo ignora.
     tweets = await scraper.get_batch(await prepare_topic(topic, date_init, date_end, last_id))
 

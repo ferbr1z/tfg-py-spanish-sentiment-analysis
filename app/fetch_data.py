@@ -6,18 +6,10 @@ from scrapper import Scrapper
 
 
 async def prepare_topic(topic: str) -> str:
-    return f"{topic} place_country:{COUNTRY} lang:es"
+    return f"{topic} place_country:{COUNTRY} lang:es -is:retweet"
 
 
-async def fetch_data(
-    scraper: Scrapper,
-    topic: str,
-    date_init: date | None = None,
-    date_end: date | None = None,
-    last_id: str | None = None,
-    pagination_token: str | None = None,
-    limit: int = 20,
-) -> dict[str, object]:
+async def fetch_data(scraper: Scrapper,topic: str,date_init: date | None = None,date_end: date | None = None, last_id: str | None = None, pagination_token: str | None = None, limit: int = 20) -> dict[str, object]:
     tweets, next_token = await scraper.get_batch(
         await prepare_topic(topic),
         count=limit,
