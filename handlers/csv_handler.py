@@ -20,6 +20,7 @@ COLUMNS = [
     "discarded",
     "discard_reason",
     "source_type",
+    "robertuito_sentiment",
 ]
 
 

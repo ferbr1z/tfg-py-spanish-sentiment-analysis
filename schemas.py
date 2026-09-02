@@ -22,6 +22,7 @@ class PostCreateSchema(SQLModel):
     created_at: str
     text: str
     sentiment_llm: Literal["POS", "NEG", "NEU"]
+    robertuito_sentiment: Literal["POS", "NEG", "NEU"] | None = None
     llm_model: str
     llm_prompt_version: str
     llm_classified_at: datetime

@@ -20,6 +20,7 @@ class Post(SQLModel, table=True):
     text: str
 
     sentiment_llm: str | None = Field(default=None)
+    robertuito_sentiment: str | None = Field(default=None)
     llm_model: str | None = Field(default=None)
     llm_prompt_version: str | None = Field(default=None)
     llm_classified_at: datetime | None = Field(

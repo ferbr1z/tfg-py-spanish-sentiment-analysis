@@ -1,15 +1,16 @@
 from datetime import date, timedelta
 
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Query
+from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from app import fetch_data, get_scraper, get_sheet_csv_handler, lifespan
+from app import fetch_data, get_scraper, get_sheet_csv_handler, get_sentiment_analyzer, lifespan
 from app.get_available_subtopic import get_available_subtopic
 from app.save_tweets import save_tweets
 from database import get_session
-from database.models import Topic, SubTopic
+from database.models import Post, Topic, SubTopic
 from handlers import SheetCsvHandler
-from schemas import PostCreateSchema, ScrapperSchema, SubTopicSchema, TestSchema, TopicSchema
+from schemas import PostCreateSchema, PostSchema, ScrapperSchema, SubTopicSchema, TestSchema, TopicSchema
 from scrapper import Scrapper
 
 app = FastAPI(lifespan=lifespan)
@@ -44,6 +45,17 @@ async def available_topics(session: AsyncSession = Depends(get_session)):
     return await get_available_subtopic(session)
 
 
+@app.get("/posts", response_model=list[PostSchema])
+async def get_posts(
+    page: int = Query(default=1, ge=1),
+    per_page: int = Query(default=20, ge=1, le=100),
+    session: AsyncSession = Depends(get_session),
+):
+    offset = (page - 1) * per_page
+    result = await session.exec(select(Post).offset(offset).limit(per_page))
+    return result.all()
+
+
 @app.post("/upload-data/{subtopic_id}")
 async def upload_data(
     subtopic_id: int,
@@ -75,6 +87,19 @@ async def exhaust_subtopic(
 @app.post("/scrapper")
 async def scrapper(topic: ScrapperSchema, scraper = Depends(get_scraper)):
     return await fetch_data(scraper, topic.name, topic.date_init, topic.date_end, topic.last_id, topic.pagination_token)
+
+@app.post("/sentiment", response_model=PostCreateSchema)
+async def sentiment(data: PostSchema, analyzer = Depends(get_sentiment_analyzer)):
+    result = analyzer(data.text)
+    data.robertuito_sentiment = result.output
+    return data
+
+@app.post("/sentiment/batch", response_model=list[PostCreateSchema])
+async def sentiment_batch(data: list[PostSchema], analyzer = Depends(get_sentiment_analyzer)):
+    for post in data:
+        result = analyzer(post.text)
+        post.robertuito_sentiment = result.output
+    return data
 
 @app.post("/test")
 async def test(topic: TestSchema, scraper: Scrapper = Depends(get_scraper)):
