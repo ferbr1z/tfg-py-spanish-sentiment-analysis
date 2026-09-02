@@ -98,7 +98,7 @@
         "url": "={{ $env.API_URL }}/scrapper",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"date_init\": \"{{$env.SINCE_DATE}}\",\n  \"date_end\": \"{{$env.UNTIL_DATE}}\",\n  \"name\": \"{{ $json.name }}\",\n  \"type\": \"Latest\",\n  \"last_id\": \"{{ $json.last_id ?? \"\" }}\",\n  \"pagination_token\": \"{{ $json.pagination_token ?? \"\" }}\"\n}",
+        "jsonBody": "={\n  \"name\": \"{{ $json.name }}\",\n  \"type\": \"Latest\",\n  \"last_id\": \"{{ $json.last_id ?? \"\" }}\",\n  \"pagination_token\": \"{{ $json.pagination_token ?? \"\" }}\"\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
