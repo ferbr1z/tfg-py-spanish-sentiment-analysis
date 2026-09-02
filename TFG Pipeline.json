@@ -98,7 +98,7 @@
         "url": "={{ $env.API_URL }}/scrapper",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"date_init\": \"{{$env.SINCE_DATE}}\",\n  \"date_end\": \"{{$env.UNTIL_DATE}}\",\n  \"name\": \"{{ $json.name }}\",\n  \"type\": \"Latest\",\n  \"last_id\": \"{{ $json.last_id ?? \"\" }}\",\n  \"pagination_token\": \"{{ $json.pagination_token ?? \"\" }}\"\n}",
+        "jsonBody": "=  {{ JSON.stringify({                                                                                 \n    date_init: $env.SINCE_DATE || null,                                                               \n    date_end: $env.UNTIL_DATE || null,                                                                \n    name: $json.name,                                                                                 \n    type: \"Latest\",                                                                                   \n    last_id: $json.last_id ?? \"\",                                                                     \n    pagination_token: $json.pagination_token ?? \"\"                                                    \n  }) }}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
@@ -317,7 +317,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "cef9553b-4f45-4c16-bc34-112f65cbe61b",
+  "versionId": "f9b873e5-fb0d-4837-be8d-fa62f043a293",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "5dce643ea41a21fedf518a181c08b89c51c188b77cf923dc322fb226ebf00c4c"
