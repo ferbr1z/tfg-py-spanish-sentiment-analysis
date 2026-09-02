@@ -1,0 +1,378 @@
+{
+  "name": "My workflow 2",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Sos un anotador experto en análisis de sentimiento de publicaciones breves e informales de la red social X, del contexto paraguayo. El objeto de estudio es la OPINIÓN CIUDADANA. Recibís un ARREGLO JSON de publicaciones con \"id\" y \"text\". Seguí EXACTAMENTE los criterios de abajo; no inventes criterios propios.\nPASO 1 — ALCANCE GEOGRÁFICO\nSi la publicación es EVIDENTEMENTE de otro país por evidencia EXPLÍCITA en el texto (topónimo, institución, moneda o hecho local de otro país; ej: \"la jueza riojana\", \"la AFIP\", \"peso colombiano\"): OMITILA POR COMPLETO, no generes ningún objeto para ella.\nSolo nombres de personas o figuras, sin un anclaje geográfico explícito, NO alcanzan para omitir. Ante la duda, asumí contexto paraguayo e INCLUILA.\nPASO 2 — TIPO DE FUENTE (clasificá, NO omitas)\n\"ciudadano\": una persona opina, reclama, valora o comenta a título personal.\n\"medio\": titular o nota periodística de un medio; reporta hechos de terceros (ej: \"Giro en el caso X: fulano cambió su testimonio\").\n\"institucional\": comunicado o difusión de un organismo, empresa, ONG, policía, ministerio, cuenta oficial, o difusión académica/promocional de un evento o trabajo (ej: \"Charla sobre...\", \"Investigadores presentan...\", \"Desarticulamos un punto de microtráfico...\").\n\"otro\": no encaja o no es determinable.\nPASO 3 — SENTIMIENTO (clasificá SIEMPRE, sea cual sea el tipo de fuente; NUNCA null) CATEGORÍAS (código en mayúsculas)\nPOS: expresa EXPLÍCITAMENTE satisfacción, aprobación, alegría, apoyo, agradecimiento o valoración favorable.\nNEG: expresa EXPLÍCITAMENTE rechazo, enojo, tristeza, queja, preocupación o valoración desfavorable.\nNEU: comunica información sin valoración explícita. Si la carga solo existe por inferencia contextual y NO por marcadores explícitos, es NEU. Ej: \"subió el combustible\" -> NEU; \"otra vez el maldito combustible\" -> NEG (marcadores: adjetivos, intensificadores, insultos, signos de exclamación, emojis). \n\nEXPRESIONES FÓRMULA O DE CONTEXTO\nNo clasifiques como POS palabras o frases aisladas de aliento, saludo, cortesía,\nmovimiento o coordinación (“vamos”, “dale”, “vamo”, “arriba”, “estamos”, “en camino”)\nsi no contienen una valoración, emoción o aprobación explícita dirigida a alguien,\nalgo o un hecho.\n\nCheck-ins, ubicaciones, etiquetas de lugar, publicaciones automáticas o textos que\nsolo indican presencia/asistencia (“Estoy en…”, “Vamos que (@ Lugar…)”, “w/ @persona”)\nson NEU, salvo que incluyan una valoración emocional explícita adicional.\n\nPara POS debe existir una valoración favorable identificable en el contenido; no basta\nun tono aparentemente animado, signos de exclamación, emojis aislados, menciones,\nhashtags, enlaces o fórmulas sociales.\n\nMÚLTIPLES SENTIMIENTOS\nTomá el predominante. El conector \"pero\" da más peso al segundo miembro. Ej: \"el estadio hermoso pero la organización un desastre\" -> NEG. CASOS AMBIGUOS\nEmoción atribuida a terceros: anotá la polaridad del texto. Ej: \"la gente está furiosa con la ANDE\" -> NEG.\nPreguntas retóricas: según la afirmación equivalente (\"¿en serio creyeron que iba a funcionar?\" -> NEG). Preguntas genuinas -> NEU.\nSentimientos débiles: \"no está mal\" -> POS; \"ni fu ni fa\" -> NEU.\nSi un emoji contradice el texto literal, el emoji define la etiqueta.\nCasos genuinamente equilibrados (POS y NEG con IGUAL peso, sin predominancia): sentiment_llm = NEU y mixed = true. (mixed es sobre el SENTIMIENTO, no el idioma.)\nSi tras aplicar todo sigue irreductible: NEU por defecto. SARCASMO E IRONÍA\nClasificá por la polaridad PRETENDIDA, no la literal (\"qué bien, otra vez sin luz\" -> NEG).\nhas_irony = true en toda publicación irónica/sarcástica (señales: emojis, comillas, contradicción evidente literal/pretendido). NO marques ironía si depende EXCLUSIVAMENTE de contexto externo al texto.\nPASO 4 — IDIOMA Y DESCARTE (solo para las INCLUIDAS)\nEspañol -> lang = \"es\".\nJopara (mezcla notable de español y guaraní) -> lang = \"jopara\".\nPredominantemente en guaraní -> discarded = true, discard_reason = \"guarani\", lang = null. Igual clasificá el SENTIMIENTO (nunca null): si hay marcadores emocionales legibles (emojis, signos, insultos, intensificadores), asigná POS/NEG según corresponda; si no hay marcadores, NEU.\nIninteligible o no interpretable -> discarded = true, discard_reason = \"ininteligible\", lang = null, sentiment_llm = NEU.\nFORMATO DE SALIDA Respondé ÚNICAMENTE con un ARREGLO JSON válido, sin texto ni bloques de código. Un objeto SOLO por cada publicación INCLUIDA (las de otro país no aparecen). Copiá el \"id\" SIN modificarlo, no fusiones ni dupliques. Cada objeto:\n{ \"identifier\": \"<el id recibido, sin cambios>\", \"llm_reason\": \"<justificación breve, máx 12 palabras>\", \"source_type\": \"ciudadano\" | \"medio\" | \"institucional\" | \"otro\", \"sentiment_llm\": \"POS\" | \"NEU\" | \"NEG\", \"has_irony\": true | false, \"mixed\": true | false, \"lang\": \"es\" | \"jopara\" | null, \"discarded\": true | false, \"discard_reason\": \"guarani\" | \"ininteligible\" | null } Reglas del JSON:\nLa cantidad de objetos de salida es MENOR O IGUAL a la de entrada.\nTodo \"id\" de salida DEBE existir en la entrada. Nunca inventes ids.\nsentiment_llm SIEMPRE es \"POS\", \"NEU\" o \"NEG\". NUNCA null, en ningún caso, ni siquiera cuando discarded = true.\ndiscarded = true -> discard_reason con valor (\"guarani\" o \"ininteligible\"), lang = null, y sentiment_llm igual se asigna (por defecto NEU).\ndiscarded = false -> discard_reason = null, lang = \"es\" o \"jopara\", y sentiment_llm es POS, NEU o NEG.\nlang es \"es\" o \"jopara\"; solo puede ser null cuando discarded = true.\nllm_reason, source_type, sentiment_llm, has_irony y mixed van SIEMPRE presentes.\nClasificá el siguiente arreglo de publicaciones: {{ JSON.stringify($json.posts) }}",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        96,
+        -336
+      ],
+      "id": "1db976bc-0242-47df-bff3-d593bbfdcb69",
+      "name": "LLM Sentiment Classifier"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "={{ $env.MODEL }}",
+          "mode": "id"
+        },
+        "builtInTools": {},
+        "options": {
+          "reasoningEffort": "medium"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        48,
+        176
+      ],
+      "id": "f589b43d-ea94-4a3b-8801-c123486686c8",
+      "name": "OpenAI Chat Model",
+      "notesInFlow": false,
+      "credentials": {
+        "openAiApi": {
+          "id": "WzkxkltN5Q2cySGM",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "={{ (() => {\n  const record = {\n    type: 'object',\n    properties: {\n      id:             { type: 'string' },\n      llm_reason:     { type: 'string' },\n      source_type:    { type: 'string', enum: ['ciudadano', 'medio', 'institucional', 'otro'] },\n      sentiment_llm:  { type: ['string', 'null'], enum: ['POS', 'NEG', 'NEU', null] },\n      has_irony:      { type: 'boolean' },\n      mixed:          { type: 'boolean' },\n      lang:           { type: ['string', 'null'], enum: ['es', 'jopara', null] },\n      discarded:      { type: 'boolean' },\n      discard_reason: { type: ['string', 'null'], enum: ['guarani', 'ininteligible', null] }\n    },\n    required: ['id', 'llm_reason', 'source_type', 'sentiment_llm', 'has_irony', 'mixed', 'lang', 'discarded', 'discard_reason'],\n    additionalProperties: false\n  };\n  return JSON.stringify({ type: 'array', items: record });\n})() }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        480,
+        144
+      ],
+      "id": "3cbbe136-db0a-4072-8a6c-5bed8b9b67cf",
+      "name": "Validate LLM Output"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "573496a9-31dc-43ca-a31a-3b91261a61b9",
+              "leftValue": "",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -256,
+        -16
+      ],
+      "id": "6e031411-1c03-460d-806e-e71ee2865e07",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "jsCode": "\nreturn [{ json: { page: $runIndex + 1 } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -896,
+        -16
+      ],
+      "id": "89f9dd1e-e76d-4023-9936-36c2232cefef",
+      "name": "first page"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.API_URL }}/sentiment/batch",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": []
+        },
+        "sendBody": true,
+        "contentType": "=json",
+        "specifyBody": "json",
+        "bodyParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "jsonBody": "={{ $json.batch }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        544,
+        -384
+      ],
+      "id": "756f79dc-fc93-4bce-b858-398bde0b53d6",
+      "name": "Robertuito labeling"
+    },
+    {
+      "parameters": {
+        "jsCode": "const originalItems = $('get').all().map(({ json }) => json);\n\nconst byIdentifier = new Map(\n  originalItems.map((item) => [String(item.identifier), item]),\n);\n\nconst byId = new Map(\n  originalItems.map((item) => [String(item.id), item]),\n);\n\nconst classifications = $input.all().flatMap(({ json }) => {\n  if (!Array.isArray(json.output)) {\n    throw new Error('Un item del LLM no contiene output como arreglo');\n  }\n\n  return json.output;\n});\n\nconst classifiedAt = new Date().toISOString();\n\nconst batch = classifications.map((item) => {\n  const key = String(item.id);\n\n  const og = byIdentifier.get(key) ?? byId.get(key);\n\n  if (!og) {\n    throw new Error(`No se encontró publicación original para id: ${key}`);\n  }\n\n  return {\n    ...og,\n    ...item,\n    id: og.id,\n    identifier: og.identifier,\n    llm_model: 'gpt-5.6-terra',\n    llm_prompt_version: '4',\n    llm_classified_at: classifiedAt,\n  };\n});\n\nreturn [{ json: { batch } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        384,
+        -384
+      ],
+      "id": "585b9f91-3d14-4e92-884e-f5f70df182b4",
+      "name": "preocess llm output"
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.API_URL }}/posts/{{ $json.page }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "per_page",
+              "value": "20"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -560,
+        -16
+      ],
+      "id": "849ef5e3-e7ce-4099-913d-a4b9093c5abf",
+      "name": "get"
+    },
+    {
+      "parameters": {
+        "jsCode": "const posts = $input.all().map(({ json }) => ({\n  identifier: String(json.identifier),\n  text: json.text,\n}));\n\nreturn [{ json: { posts } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -112,
+        -208
+      ],
+      "id": "5b76565f-be62-4316-ae72-eedaf861d2db",
+      "name": "preia"
+    },
+    {
+      "parameters": {
+        "jsCode": "  const resultados = $input.all();                                                                \n                                                                                                  \n  const batchOriginal = $('preocess llm output').first().json.batch ?? [];                        \n                                                                                                  \n  const idPorIdentifier = new Map(                                                                \n    batchOriginal.map(({ id, identifier }) => [String(identifier), id]),                          \n  );                                                                                              \n                                                                                                  \n  const posts = resultados.map(({ json }) => {                                                    \n    const id = idPorIdentifier.get(String(json.identifier));                                      \n                                                                                                  \n    if (id === undefined) {                                                                       \n      throw new Error(                                                                            \n        `No se encontró el id original para identifier: ${json.identifier}`,                      \n      );                                                                                          \n    }                                                                                             \n                                                                                                  \n    return { ...json, id };                                                                       \n  });                                                                                             \n                                                                                                  \n  return [{ json: { posts } }];                                                                   \n                                "
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        704,
+        -384
+      ],
+      "id": "66b52583-7695-4bf9-8c88-0023469f32ed",
+      "name": "prepare for update"
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "={{ $env.API_URL }}/posts",
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ JSON.stringify($json.posts) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        976,
+        224
+      ],
+      "id": "4f49f8a1-8f28-40ae-b776-65dc50901b3f",
+      "name": "update"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1280,
+        -16
+      ],
+      "id": "39a7a30c-b8e7-474f-b515-01c623f9b4cb",
+      "name": "When clicking ‘Execute workflow’"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "LLM Sentiment Classifier": {
+      "main": [
+        [
+          {
+            "node": "preocess llm output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "LLM Sentiment Classifier",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate LLM Output": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "LLM Sentiment Classifier",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "preia",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "first page": {
+      "main": [
+        [
+          {
+            "node": "get",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "preocess llm output": {
+      "main": [
+        [
+          {
+            "node": "Robertuito labeling",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "preia": {
+      "main": [
+        [
+          {
+            "node": "LLM Sentiment Classifier",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Robertuito labeling": {
+      "main": [
+        [
+          {
+            "node": "prepare for update",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "prepare for update": {
+      "main": [
+        [
+          {
+            "node": "update",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "update": {
+      "main": [
+        [
+          {
+            "node": "first page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "first page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "26825065-a58b-4364-9b05-6708133433a1",
+  "meta": {
+    "instanceId": "5dce643ea41a21fedf518a181c08b89c51c188b77cf923dc322fb226ebf00c4c"
+  },
+  "nodeGroups": [],
+  "id": "JRvxJCnx8diw6sRU",
+  "tags": []
+}

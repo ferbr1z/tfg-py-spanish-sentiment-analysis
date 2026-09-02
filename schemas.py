@@ -37,6 +37,16 @@ class PostCreateSchema(SQLModel):
 
     source_type: str | None = None
 
+class PostUpdateSchema(PostCreateSchema):
+    id:int
+
+class PostResponseSchema(SQLModel):
+    id: int
+    identifier: str
+    created_at: str
+    text: str
+
+
 
 class PostSchema(PostCreateSchema):
     id: int
