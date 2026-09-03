@@ -181,7 +181,19 @@ class GoogleSheetsClient:
         def _append_rows():
             ws = self.sheet[0]
             self._ensure_capacity(ws, start_row + len(rows) - 1, len(rows[0]))
-            ws.updateRows(rows, startRow=start_row)
+            # ezsheets.updateRows() rellena con celdas vacías desde start_row
+            # hasta el final de la hoja. Para una actualización puntual eso
+            # borraría todas las publicaciones posteriores. Escribimos solo el
+            # rango solicitado y usamos RAW para preservar identifiers largos.
+            title = ws.title.replace("'", "''")
+            end_column = ezsheets.getColumnLetterOf(len(rows[0]))
+            end_row = start_row + len(rows) - 1
+            ezsheets.SHEETS_SERVICE.spreadsheets().values().update(
+                spreadsheetId=self.sheet_id,
+                range=f"'{title}'!A{start_row}:{end_column}{end_row}",
+                valueInputOption="RAW",
+                body={"majorDimension": "ROWS", "values": rows},
+            ).execute()
 
         self._run_with_retries("Append de filas en Google Sheets", _append_rows)
 
