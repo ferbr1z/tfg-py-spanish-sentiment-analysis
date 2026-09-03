@@ -5,6 +5,7 @@ from fastapi import FastAPI, Request
 from config import SHEET_ID
 from handlers import SheetCsvHandler
 from scrapper import Scrapper
+from sentiment_analyzer import sentiment_analyzer
 
 
 @asynccontextmanager
@@ -24,3 +25,7 @@ def get_scraper(request: Request) -> Scrapper:
 
 def get_sheet_csv_handler(request: Request) -> SheetCsvHandler:
     return request.app.state.sheet_csv_handler
+
+
+def get_sentiment_analyzer():
+    return sentiment_analyzer

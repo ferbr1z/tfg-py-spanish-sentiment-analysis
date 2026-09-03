@@ -49,6 +49,33 @@ class SheetCsvHandler:
         self.sheet_client.upload_csv_to_sheet(self.csv_handler.file_path)
         self._synced_rows = len(self.csv_handler.csv)
 
+    def update_tweet(self, tweet, **extra_fields):
+        return self.update_tweets([tweet], **extra_fields)
+
+    def update_tweets(self, tweets, meta=None, **extra_fields):
+        """Update in place (por id) del CSV local + push de esas mismas filas
+        al sheet. `tweets` son PostSchema/PostUpdateSchema (deben traer id).
+        `meta` (dict id -> {categoria, sub_categoria}) solo se usa para rellenar
+        las filas nuevas; las existentes conservan su categoria."""
+        rows = [{**tweet.model_dump(mode="json"), **extra_fields} for tweet in tweets]
+        updated = self.csv_handler.update_rows(rows, meta=meta)
+        if updated:
+            self.csv_handler.save_csv()
+
+        if not self._has_sheet_client() or not updated:
+            return updated
+
+        for pos in updated:
+            record = (
+                self.csv_handler.csv.iloc[[pos]]
+                .reindex(columns=COLUMNS, fill_value="")
+                .fillna("")
+                .to_dict("records")[0]
+            )
+            row = [str(record.get(col, "")) for col in COLUMNS]
+            self.sheet_client.append_rows([row], pos + 2)  # +1 header, +1 1-based
+        return updated
+
     def add_tweet(self, tweet, **extra_fields):
         return self.add_tweets([tweet], **extra_fields)
 
