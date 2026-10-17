@@ -1,6 +1,9 @@
 """
 Monkey-patch for twikit's SearchTimeline endpoint.
 
+Includes adaptations of MIT-licensed third-party code.
+See THIRD_PARTY_NOTICES.md and licenses/twikit-MIT.txt at the repository root.
+
 Backports the SearchTimeline portion of upstream PR d60/twikit#419 (open at
 time of writing). X rotated the SearchTimeline GraphQL doc_id, expanded the
 required feature set, and added a `withGrokTranslatedBio` variable; without

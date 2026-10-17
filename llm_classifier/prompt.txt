@@ -26,7 +26,7 @@ Jopara (mezcla notable de español y guaraní) -> lang = "jopara".
 Predominantemente en guaraní -> discarded = true, discard_reason = "guarani", lang = null. Igual clasificá el SENTIMIENTO (nunca null): si hay marcadores emocionales legibles (emojis, signos, insultos, intensificadores), asigná POS/NEG según corresponda; si no hay marcadores, NEU.
 Ininteligible o no interpretable -> discarded = true, discard_reason = "ininteligible", lang = null, sentiment_llm = NEU.
 FORMATO DE SALIDA Respondé ÚNICAMENTE con un ARREGLO JSON válido, sin texto ni bloques de código. Un objeto SOLO por cada publicación INCLUIDA (las de otro país no aparecen). Copiá el "id" SIN modificarlo, no fusiones ni dupliques. Cada objeto:
-{ "identifier": "<el id recibido, sin cambios>", "llm_reason": "<justificación breve, máx 12 palabras>", "source_type": "ciudadano" | "medio" | "institucional" | "otro", "sentiment_llm": "POS" | "NEU" | "NEG", "has_irony": true | false, "mixed": true | false, "lang": "es" | "jopara" | null, "discarded": true | false, "discard_reason": "guarani" | "ininteligible" | null } Reglas del JSON:
+{ "id": "<el id recibido, sin cambios>", "llm_reason": "<justificación breve, máx 12 palabras>", "source_type": "ciudadano" | "medio" | "institucional" | "otro", "sentiment_llm": "POS" | "NEU" | "NEG", "has_irony": true | false, "mixed": true | false, "lang": "es" | "jopara" | null, "discarded": true | false, "discard_reason": "guarani" | "ininteligible" | null } Reglas del JSON:
 La cantidad de objetos de salida es MENOR O IGUAL a la de entrada.
 Todo "id" de salida DEBE existir en la entrada. Nunca inventes ids.
 sentiment_llm SIEMPRE es "POS", "NEU" o "NEG". NUNCA null, en ningún caso, ni siquiera cuando discarded = true.

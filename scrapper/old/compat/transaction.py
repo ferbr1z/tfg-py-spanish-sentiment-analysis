@@ -1,3 +1,9 @@
+"""Twikit transaction compatibility with local modifications.
+
+Includes adaptations of MIT-licensed third-party code.
+See THIRD_PARTY_NOTICES.md and licenses/twikit-MIT.txt at the repository root.
+"""
+
 import math
 import re
 from functools import reduce

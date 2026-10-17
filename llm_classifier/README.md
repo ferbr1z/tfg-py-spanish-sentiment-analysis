@@ -1,63 +1,105 @@
 # Clasificador LLM
 
-Esta parte del pipeline clasifica publicaciones paraguayas como `POS`, `NEG` o `NEU` y detecta ironía o sarcasmo mediante el modelo configurado en `MODEL`.
+Clasificación de publicaciones de X en el contexto paraguayo: sentimiento, tipo de fuente, idioma, ironía y motivos de descarte.
 
-## Contrato de entrada
+[Prompt vigente](prompt.txt) · [Esquema de salida](output_schema.json) · [Workflow de n8n](../TFG%20Pipeline.json) · [Documentación general](../README.md)
 
-El nodo `Scrapper` debe entregar un objeto `items`. Cada publicación necesita como mínimo `id` y `text`.
+## Archivos de referencia
 
-## Contrato de salida
+| Archivo | Función |
+| --- | --- |
+| [prompt.txt](prompt.txt) | Prompt vigente, versión `5`, sincronizado con `LLM Sentiment Classifier` |
+| [output_schema.json](output_schema.json) | Copia JSON del esquema de `Validate LLM Output` en el workflow |
 
-El LLM devuelve `output.classifications`, una lista con un objeto por publicación:
+`prompt.txt` es el único archivo de prompt de esta carpeta. La versión `5` alinea los identificadores y las reglas de descarte con el flujo de carga. Las versiones anteriores pueden consultarse en el historial de Git.
+
+## Flujo de clasificación
+
+1. `Scrapper` entrega las publicaciones en `items`, con `id` y `text` como campos necesarios para clasificar.
+2. `LLM Sentiment Classifier` aplica el prompt usando el modelo de `OpenAI Chat Model`.
+3. `Validate LLM Output` interpreta la respuesta estructurada con el esquema del workflow.
+4. `Code in JavaScript` comprueba identificadores y reglas de descarte, recupera los datos originales y agrega los metadatos del LLM.
+5. `Upload` envía el lote a `/upload-data/{subtopic_id}` para su almacenamiento mediante la API.
+
+Las publicaciones evidentemente ajenas a Paraguay se omiten. Las incluidas se clasifican por fuente y sentimiento; las predominantemente en guaraní o ininteligibles se conservan con `discarded=true` y el motivo correspondiente.
+
+## Contrato de salida del LLM
+
+La respuesta es un **arreglo JSON**, no un objeto con `classifications`. Puede contener menos elementos que la entrada debido a las omisiones geográficas. Si no hay publicaciones incluidas, devuelve `[]`.
 
 ```json
-{
-  "classifications": [
-    {
-      "id": "publicacionid",
-      "label": "NEG",
-      "hasIrony": true
-    }
-  ]
-}
+[
+  {
+    "id": "1234567890",
+    "llm_reason": "Expresa una queja explícita sobre el servicio",
+    "source_type": "ciudadano",
+    "sentiment_llm": "NEG",
+    "has_irony": false,
+    "mixed": false,
+    "lang": "es",
+    "discarded": false,
+    "discard_reason": null
+  }
+]
 ```
 
-`Prepare LLM Results` produce un elemento de n8n por publicación. Conserva todos los campos originales y agrega:
+Todos los campos son obligatorios y el esquema no admite propiedades adicionales.
 
-- `sentiment_llm`: `POS`, `NEG` o `NEU`.
-- `hasIrony`: `true` cuando se detecta ironía o sarcasmo; de lo contrario, `false`.
-- `llm_model`: identificador del modelo utilizado.
-- `llm_prompt_version`: versión del prompt.
-- `llm_classified_at`: fecha y hora ISO de clasificación.
+| Campo | Valores y significado |
+| --- | --- |
+| `id` | Identificador original como cadena, sin modificar, inventar ni duplicar |
+| `llm_reason` | Justificación breve; el prompt pide un máximo de 12 palabras |
+| `source_type` | `ciudadano`, `medio`, `institucional` u `otro` |
+| `sentiment_llm` | `POS`, `NEG` o `NEU`, también cuando el registro está descartado |
+| `has_irony` | Presencia de ironía o sarcasmo detectable en el texto |
+| `mixed` | Sentimientos positivo y negativo genuinamente equilibrados; no mezcla de idiomas |
+| `lang` | `es` o `jopara`; `null` para los descartados |
+| `discarded` | Indica descarte por idioma o ininteligibilidad, no por procedencia geográfica |
+| `discard_reason` | `guarani` o `ininteligible` cuando se descarta; `null` en otro caso |
 
-Esos elementos pueden conectarse directamente a los nodos encargados de Google Sheets y de la base de datos externa.
+### Esquema y reglas de aplicación
 
-## Única configuración manual del LLM
+[output_schema.json](output_schema.json) reproduce el esquema del pipeline, sin endurecerlo ni cambiar sus nombres. Ese esquema permite `sentiment_llm=null`, pero el prompt vigente, el nodo de preparación y [PostCreateSchema](../schemas.py) exigen una etiqueta no nula. El esquema es más permisivo que el contrato efectivo de carga.
 
-1. Importar `n8n.json` en n8n.
-2. Abrir `OpenAI Chat Model`.
-3. Crear una credencial de OpenAI, pegar la API key y guardar.
+- `discarded=false`: `lang` es `es` o `jopara` y `discard_reason=null`.
+- `discarded=true`: `lang=null`, el motivo es `guarani` o `ininteligible` y se conserva una etiqueta de sentimiento. Para texto ininteligible se usa `NEU`.
+- Un ID desconocido o repetido hace fallar la preparación del lote.
+- La omisión geográfica no genera un registro descartado: el ID queda fuera del arreglo y se informa en `omitted_other_country` durante la preparación.
 
-El modelo, el prompt, los criterios de clasificación, la validación y la
-preparación de resultados ya quedan configurados en el workflow. No hay que
-copiar el prompt ni editar el esquema manualmente.
+El JSON Schema valida estructura y tipos. Las relaciones entre campos se verifican en el nodo de código; otros criterios, como la justificación de hasta 12 palabras, son instrucciones del prompt y no límites implementados en el esquema.
 
-Al ejecutar, `Prepare LLM Results` entrega una fila por publicación lista para
-conectarse a Google Sheets o a la base de datos externa.
+## Del resultado del LLM al registro de la API
 
-El prompt actual está en `prompt_v4.txt` y su esquema de validación en `output_schema.json`.
+El nodo `Code in JavaScript` transforma `id` en `identifier` y recupera los campos de la publicación original, como `text` y `created_at`. También agrega:
 
-La API key se guarda únicamente en la credencial de n8n. No debe agregarse a
-`n8n.json`, `.env`, el prompt ni ningún archivo del repositorio.
+| Campo | Origen |
+| --- | --- |
+| `llm_model` | Variable de entorno `MODEL` de n8n |
+| `llm_prompt_version` | Versión `5` declarada en el nodo |
+| `llm_classified_at` | Fecha y hora de preparación del lote, en formato ISO |
 
-## Dónde está cada parte
+El nodo produce un objeto que contiene `items` y el estado del subtema, no un elemento de n8n por publicación. `Upload` utiliza ese arreglo como cuerpo de la solicitud y transmite el token de paginación por query string.
 
-- `../TFG Pipeline.json`: workflow que conecta scraper, clasificador, validación y
-  preparación de resultados.
-- `prompt_v4.txt`: copia versionada del criterio de clasificación usado en el
-  nodo `LLM Sentiment Classifier`.
-- `output_schema.json`: contrato de salida usado por `Validate LLM Output`.
-- Credencial de OpenAI: solamente en el nodo `OpenAI Chat Model` de n8n.
+## Configuración en n8n
 
-Si se cambia el prompt o el esquema, se debe actualizar tanto el archivo
-versionado como el nodo correspondiente de `TFG Pipeline.json`.
+1. Sigue la [instalación del proyecto y de n8n](../README.md#integraciones).
+2. Importa [TFG Pipeline.json](../TFG%20Pipeline.json).
+3. Configura una credencial del proveedor en `OpenAI Chat Model`.
+4. Define `MODEL` y `API_URL` en `.env`; `SINCE_DATE` y `UNTIL_DATE` son opcionales. Compose transmite estos valores al contenedor; recréalo si cambias su entorno.
+5. Prueba un lote pequeño antes de activar la programación del workflow.
+
+El workflow exportado contiene su propia copia del prompt y del esquema: n8n **no lee automáticamente** los archivos de esta carpeta. Al importar el workflow actualizado, no hace falta copiarlos manualmente.
+
+La API key se guarda en las credenciales de n8n, nunca en el prompt, el workflow exportado ni los archivos del repositorio.
+
+## Cómo mantenerlo sincronizado
+
+Al modificar los criterios o el contrato:
+
+1. Edita [prompt.txt](prompt.txt) y copia su contenido al campo `text` de `LLM Sentiment Classifier`, conservando el modo expresión y la interpolación `{{ JSON.stringify($json.items) }}`.
+2. Si cambia el esquema, actualiza tanto [output_schema.json](output_schema.json) como `Validate LLM Output`. El nodo actual genera el esquema mediante una expresión; ambos deben representar el mismo JSON.
+3. Revisa `Code in JavaScript` y `PostCreateSchema` para mantener compatibles los nombres, valores nulos y reglas de descarte.
+4. Incrementa `llm_prompt_version` en el nodo de preparación y documenta la versión aquí. No reetiquetes registros históricos como si hubieran usado el nuevo prompt.
+5. Verifica un lote vacío, una publicación normal, una descartada y las omisiones geográficas. Comprueba también que se rechacen IDs ajenos o duplicados.
+
+Los cambios de criterio pueden afectar la comparabilidad del corpus; conserva su trazabilidad mediante la versión y el historial de Git.
