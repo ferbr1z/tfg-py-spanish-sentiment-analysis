@@ -11,6 +11,19 @@ Recolección, anotación y clasificación de publicaciones sobre temas sociales 
 
 </div>
 
+## Índice
+
+- [Resumen](#resumen)
+- [Cómo funciona](#cómo-funciona)
+- [Corpus](#corpus)
+- [Instalación](#instalación)
+- [Uso](#uso)
+- [Estructura del repositorio](#estructura-del-repositorio)
+- [Limitaciones](#limitaciones)
+- [Cómo citar](#cómo-citar)
+- [Autores](#autores)
+- [Licencia](#licencia)
+
 ## Resumen
 
 Este repositorio implementa un flujo completo para estudiar el sentimiento en publicaciones de X del contexto paraguayo: recolecta publicaciones por tema, las anota con un modelo de lenguaje según sentimiento, ironía, idioma y tipo de fuente, y las clasifica con RoBERTuito. Una API en FastAPI y un workflow de n8n coordinan las etapas, con almacenamiento en PostgreSQL, CSV y Google Sheets.
